@@ -1,17 +1,19 @@
 import pygame
+from typing import Union
+
 from .utility import sub_rect
 
 
 class Panel:
 
-    def __init__(self, screen, rect):
-        self.screen = screen
+    def __init__(self, display, rect):
+        self.display = display
         self.rect = rect
         self.font_size = self.rect.height
         self.fx = 0
         self.fy = 0
-        self.color = self.screen.white
-        self.bg_color = self.screen.black
+        self.color = self.display.white
+        self.bg_color = self.display.black
         self._font = None
 
     def configure(self,
@@ -38,9 +40,9 @@ class Panel:
         return self._font
 
     def clear(self):
-        self.screen.surface.fill(self.bg_color, rect=self.rect)
+        self.display.surface.fill(self.bg_color, rect=self.rect)
 
-    def text(self, text):
+    def text(self, text, duration: Union[int, float] = None):
         self.clear()
         text_width, text_height = self.font.size(text)
         text_rect = sub_rect(self.rect,
@@ -49,8 +51,10 @@ class Panel:
                              width=text_width,
                              height=text_height)
         text_surface = self.font.render(text, True, self.color)
-        self.screen.surface.blit(text_surface, text_rect)
+        self.display.surface.blit(text_surface, text_rect)
         pygame.display.update()
+        if duration is not None:
+            self.display.event_manager.register('timer', self.clear, duration, max_count=1)
 
     def hsplit(self, x=None, fx=None):
         if fx is None:
@@ -59,11 +63,11 @@ class Panel:
             else:
                 left_width = x
         else:
-            left_width = int(fwidth * self.width)
+            left_width = int(fx * self.rect.width)
         right_width = self.rect.width - left_width
         left_rect = pygame.Rect(self.rect.left, self.rect.top, left_width, self.rect.height)
         right_rect = pygame.Rect(left_rect.right, self.rect.top, right_width, self.rect.height)
-        return self.__class__(self.screen, left_rect), self.__class__(self.screen, right_rect)
+        return self.__class__(self.display, left_rect), self.__class__(self.display, right_rect)
 
     def vsplit(self, y=None, fy=None):
         if fy is None:
@@ -72,11 +76,11 @@ class Panel:
             else:
                 above_height = y
         else:
-            above_height = int(fy * self.height)
+            above_height = int(fy * self.rect.height)
         below_height = self.rect.height - above_height
         above_rect = pygame.Rect(self.rect.left, self.rect.top, self.rect.width, above_height)
         below_rect = pygame.Rect(self.rect.left, above_rect.bottom, self.rect.width, below_height)
-        return self.__class__(self.screen, above_rect), self.__class__(self.screen, below_rect)
+        return self.__class__(self.display, above_rect), self.__class__(self.display, below_rect)
 
     def __str__(self):
         return 'Panel(rect={}, fx={}, fy={}, color={}, bg_color={})'.format(

@@ -2,6 +2,12 @@
 
 import os
 import sys
+
+# Force running as root.
+if os.getuid() != 0:
+    print('(force run as root)')
+    os.execlp('sudo', 'sudo', *sys.argv)
+
 import atexit
 
 from lib import log
@@ -10,10 +16,6 @@ from lib.controller import Controller
 from app import PID_FILE
 from app.main_screen import MainScreen
 
-# Force running as root.
-if os.getuid() != 0:
-    os.execlp('sudo', 'sudo', *sys.argv)
-
 
 def before_hook():
     if os.path.exists(PID_FILE):
@@ -21,9 +23,9 @@ def before_hook():
             pid = int(pid_file.read().strip())
             try:
                 os.kill(pid, 2)
-                log.info('Killed previous run (PID=%d).' % pid)
+                log.info(f'Killed previous run (PID={pid}).')
             except OSError:
-                log.info('Previous run (PID=%d) must have died.' % pid)
+                log.info(f'Previous run (PID={pid}) must have died.')
         os.remove(PID_FILE)
     with open(PID_FILE, 'w') as pid_file:
         pid_file.write(str(os.getpid()))

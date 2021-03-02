@@ -42,7 +42,7 @@ class MainScreen:
         self.display_date()
 
     def message(self, text: str, duration: Union[int, float] = None):
-        log.info('message: %s' % text)
+        log.info(f'message: {text}')
         self.message_panel.text(text, duration=duration)
 
     def on_button1(self):

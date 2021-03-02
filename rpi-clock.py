@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
 import atexit
 import logging
-
 
 # Force running as root.
 if os.getuid() != 0:
@@ -13,7 +12,6 @@ if os.getuid() != 0:
 from time import sleep, time, localtime, strftime
 import RPi.GPIO as GPIO
 
-from lib.panel_spec import PanelSpec
 from lib.panel import Panel
 from lib.screen import Screen
 from lib.timer import Timer
@@ -43,7 +41,7 @@ class Controller:
         self.timers = []
         self.tick_handlers = []
 
-	log.debug('Initialize GPIO.')
+        log.debug('Initialize GPIO.')
         GPIO.setmode(GPIO.BCM)
         self.button_handlers = []
         for pin in self.button_pins:

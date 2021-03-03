@@ -15,7 +15,10 @@ class ButtonEvents(EventProducer):
         GPIO.setmode(GPIO.BCM)
         for pin in self.button_pins:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            self.button_handlers.append([])
+        self._clear_handlers()
+
+    def _clear_handlers(self):
+        self.button_handlers: List[List[Callable]] = [[], [], [], []]
 
     def register(self, function: Callable, *args, **kwargs):
         self.button_handlers[args[0] - 1].append(function)
@@ -25,3 +28,6 @@ class ButtonEvents(EventProducer):
             if not GPIO.input(pin):
                 for button_handler in self.button_handlers[pin_idx]:
                     button_handler()
+
+    def clear(self):
+        self._clear_handlers()

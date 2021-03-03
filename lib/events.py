@@ -8,13 +8,21 @@ class EventProducer:
     def register(self, function: Callable, *args, **kwargs):
         raise NotImplementedError
 
+    def clear(self):
+        raise NotImplementedError
+
     def tick(self):
         raise NotImplementedError
 
 
 class EventManager:
+
     def __init__(self):
         self.producers: Dict[str, EventProducer] = {}
+
+    def clear(self):
+        for event_producer in self.producers.values():
+            event_producer.clear()
 
     def add_producer(self, name: str, producer: EventProducer):
         self.producers[name] = producer

@@ -14,3 +14,6 @@ class TickEvents(EventProducer):
     def tick(self):
         for tick_function in self.tick_handlers:
             tick_function()
+
+    def clear(self):
+        self.tick_handlers = []

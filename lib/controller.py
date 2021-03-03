@@ -5,6 +5,7 @@ from .events import EventManager
 from .button_events import ButtonEvents
 from .timer_events import TimerEvents
 from .tick_events import TickEvents
+from .screens import ScreenManager
 
 
 class Controller:
@@ -16,15 +17,17 @@ class Controller:
         self.event_manager.add_producer('button', ButtonEvents())
         self.event_manager.add_producer('timer', TimerEvents())
         self.event_manager.add_producer('tick', TickEvents())
+        self.screen_manager = ScreenManager(self.event_manager)
         self.display = Display(self.event_manager)
         self.display.clear()
-        self.screens = {}
 
     def add_screen(self, name, screen_class):
-        self.screens[name] = screen_class(self.display, self.event_manager)
+        self.screen_manager.add_screen(name, screen_class(self.display,
+                                                          self.event_manager,
+                                                          self.screen_manager))
 
     def show_screen(self, name):
-        self.screens[name].initialize()
+        self.screen_manager.show_screen(name)
 
     def main(self, initial_screen_name):
         self.show_screen(initial_screen_name)

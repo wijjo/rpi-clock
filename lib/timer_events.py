@@ -24,3 +24,6 @@ class TimerEvents(EventProducer):
             if timer.is_active():
                 active_timers.append(timer)
         self.timers = active_timers
+
+    def clear(self):
+        self.timers = []

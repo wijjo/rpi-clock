@@ -4,6 +4,7 @@ from typing import Union
 from lib import log
 from lib.display import Display
 from lib.events import EventManager
+from lib.screens import ScreenManager
 
 from . import COLOR_BRIGHT, COLOR_NORMAL, COLOR_DIM
 
@@ -13,10 +14,14 @@ class MainScreen:
     default_text_color = Display.white
     bg_default = Display.black
 
-    def __init__(self, display: Display, event_manager: EventManager):
+    def __init__(self,
+                 display: Display,
+                 event_manager: EventManager,
+                 screen_manager: ScreenManager):
         self.local_time = None
         self.display = display
         self.event_manager = event_manager
+        self.screen_manager = screen_manager
 
         # Initialize panels.
         top_panel, bottom_panel = display.panel.vsplit(y=150)
@@ -28,14 +33,12 @@ class MainScreen:
         gap_panel, self.message_panel = bottom_panel.vsplit(y=60)
         self.message_panel.configure(fx=0, fy=1, color=COLOR_DIM)
 
-        # Register event handlers.
+    def initialize(self):
         self.event_manager.register('button', self.on_button1, 1)
         self.event_manager.register('button', self.on_button2, 2)
         self.event_manager.register('button', self.on_button3, 3)
         self.event_manager.register('button', self.on_button4, 4)
         self.event_manager.register('tick', self.on_tick)
-
-    def initialize(self):
         self.local_time = localtime()
         self.display_time1()
         self.display_time2()
@@ -46,7 +49,7 @@ class MainScreen:
         self.message_panel.text(text, duration=duration)
 
     def on_button1(self):
-        self.message('button1', duration=5)
+        self.screen_manager.show_screen('main')
 
     def on_button2(self):
         self.message('button2', duration=5)

@@ -26,11 +26,8 @@ class Controller:
                                                           self.event_manager,
                                                           self.screen_manager))
 
-    def show_screen(self, name):
-        self.screen_manager.show_screen(name)
-
     def main(self, initial_screen_name):
-        self.show_screen(initial_screen_name)
+        self.screen_manager.show_screen(initial_screen_name)
         while True:
             self.event_manager.tick()
             sleep(self.poll_interval)

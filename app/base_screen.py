@@ -1,43 +1,65 @@
-from typing import Union
+from typing import List
 
 from lib import log
 from lib.display import Display
 from lib.events import EventManager
+from lib.message_panel import MessagePanel
+from lib.panel import Panel
 from lib.screens import ScreenManager
+from lib.typing import Duration
+from lib.viewport import Viewport
 
 from . import COLOR_DIM
 
 
-class BaseScreen:
+class ScreenPanel:
+    def __init__(self, viewport: Viewport, panel: Panel):
+        self.viewport = viewport
+        self.panel = panel
 
-    default_text_color = Display.white
-    bg_default = Display.black
+
+class BaseScreen:
 
     def __init__(self,
                  display: Display,
                  event_manager: EventManager,
                  screen_manager: ScreenManager):
-        self.local_time = None
         self.display = display
         self.event_manager = event_manager
         self.screen_manager = screen_manager
-        # Provide sub-class with common panel viewports for screen consistency.
-        self.body_panel, self.message_panel = display.panel.vsplit(y=210)
-        self.message_panel.configure(fx=0, fy=1, color=COLOR_DIM)
+        self.screen_panels: List[ScreenPanel] = []
+        # Provide sub-class with common viewport viewports for screen consistency.
+        outer_viewport = Viewport(self.display, self.display.rect)
+        self.body_viewport, message_viewport = outer_viewport.vsplit(210)
+        message_viewport.configure(fx=0, fy=1, color=COLOR_DIM)
+        self.message_panel = MessagePanel()
+        self.add_panel(message_viewport, self.message_panel)
+
+    def add_panel(self, viewport: Viewport, panel: Panel):
+        self.screen_panels.append(ScreenPanel(viewport, panel))
 
     def initialize(self):
         """
-        Sub-class must make sure to call super().initialize().
+        Base screen initialization.
         """
         self.event_manager.register('button', self.on_button1, 1)
         self.event_manager.register('button', self.on_button2, 2)
         self.event_manager.register('button', self.on_button3, 3)
         self.event_manager.register('button', self.on_button4, 4)
         self.event_manager.register('tick', self.on_tick)
+        for screen_panel in self.screen_panels:
+            screen_panel.panel.on_display(screen_panel.viewport)
+        self.on_initialize()
 
-    def message(self, text: str, duration: Union[int, float] = None):
+    def message(self, text: str, duration: Duration = None):
         log.info(f'message: {text}')
-        self.message_panel.text(text, duration=duration)
+        self.message_panel.set(text, duration=duration)
+
+    def on_initialize(self):
+        """
+        Optional hook for sub-class initialization.
+        """
+        pass
 
     def on_button1(self):
         self.screen_manager.show_screen('main')
@@ -53,6 +75,8 @@ class BaseScreen:
 
     def on_tick(self):
         """
-        Hook for sub-class to receive tick events.
+        Called to update panels.
         """
-        pass
+        for screen_panel in self.screen_panels:
+            if screen_panel.panel.on_check():
+                screen_panel.panel.on_display(screen_panel.viewport)

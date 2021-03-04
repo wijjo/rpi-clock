@@ -1,8 +1,8 @@
 from RPi import GPIO
 from typing import List, Callable
 
-from . import log
-from .events import EventProducer
+from lib import log
+from ..event_producer import EventProducer
 
 
 class ButtonEvents(EventProducer):

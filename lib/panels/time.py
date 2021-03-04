@@ -1,7 +1,8 @@
 from time import localtime, strftime
 
-from .panel import Panel
-from .viewport import Viewport
+from ..event_manager import EventManager
+from ..panel import Panel
+from ..viewport import Viewport
 
 
 class TimePanel(Panel):
@@ -21,6 +22,9 @@ class TimePanel(Panel):
         self.use_minute = _check_format('M')
         self.use_second = _check_format('S')
         self.local_time = localtime()
+
+    def on_initialize(self, event_manager: EventManager):
+        pass
 
     def on_display(self, viewport: Viewport):
         viewport.text(strftime(self.time_format, self.local_time))

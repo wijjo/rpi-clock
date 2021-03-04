@@ -11,10 +11,13 @@ if os.getuid() != 0:
 import atexit
 
 from lib import log
+from lib.config import Config
 from lib.controller import Controller
 
 from app import PID_FILE
 from app.main_screen import MainScreen
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
 def before_hook():
@@ -40,7 +43,8 @@ def main():
     before_hook()
     atexit.register(after_hook)
     log.info('Create controller.')
-    controller = Controller()
+    config = Config(CONFIG_PATH)
+    controller = Controller(config)
     log.info('Create main screen.')
     controller.add_screen('main', MainScreen)
     log.info('Start main loop.')

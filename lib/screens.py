@@ -1,7 +1,15 @@
 from typing import Optional
 
 from . import log
-from .events import EventManager
+from .event_manager import EventManager
+from .panel import Panel
+from .viewport import Viewport
+
+
+class ScreenPanel:
+    def __init__(self, viewport: Viewport, panel: Panel):
+        self.viewport = viewport
+        self.panel = panel
 
 
 class ScreenManager:

@@ -1,8 +1,9 @@
 from typing import Optional
 
-from .panel import Panel
-from .typing import Duration
-from .viewport import Viewport
+from ..event_manager import EventManager
+from ..panel import Panel
+from ..typing import Duration
+from ..viewport import Viewport
 
 
 class MessagePanel(Panel):
@@ -15,6 +16,9 @@ class MessagePanel(Panel):
     def set(self, text: str, duration: Duration = None):
         self.text = text
         self.duration = duration
+
+    def on_initialize(self, event_manager: EventManager):
+        pass
 
     def on_display(self, viewport: Viewport):
         viewport.text(self.text, duration=self.duration)

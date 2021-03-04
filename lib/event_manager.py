@@ -1,18 +1,7 @@
 from typing import Dict, Callable
 
 from . import log
-
-
-class EventProducer:
-
-    def register(self, function: Callable, *args, **kwargs):
-        raise NotImplementedError
-
-    def clear(self):
-        raise NotImplementedError
-
-    def tick(self):
-        raise NotImplementedError
+from .event_producer import EventProducer
 
 
 class EventManager:

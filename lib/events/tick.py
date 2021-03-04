@@ -1,6 +1,6 @@
 from typing import List, Callable
 
-from .events import EventProducer
+from ..event_producer import EventProducer
 
 
 class TickEvents(EventProducer):

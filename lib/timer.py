@@ -19,7 +19,7 @@ class Timer:
         if time_to_check < self._next_time:
             return False
         self._count += 1
-        if self._count < self.max_count:
+        if self.max_count is None or self._count < self.max_count:
             self._next_time = time_to_check + self.interval
         else:
             self._next_time = None
@@ -27,4 +27,3 @@ class Timer:
 
     def is_active(self):
         return self._next_time is not None
-

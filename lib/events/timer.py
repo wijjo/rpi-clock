@@ -1,8 +1,8 @@
 from time import time
 from typing import Callable
 
-from .timer import Timer
-from .events import EventProducer
+from ..event_producer import EventProducer
+from ..timer import Timer
 
 
 class TimerEvents(EventProducer):

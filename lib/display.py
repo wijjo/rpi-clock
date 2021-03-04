@@ -1,7 +1,7 @@
 import os
 import pygame
 
-from .events import EventManager
+from .event_manager import EventManager
 from .typing import Color, FontSize
 
 WHITE: Color = (255, 255, 255)
@@ -13,6 +13,9 @@ BLUE: Color = (0, 0, 255)
 
 COLOR_DEFAULT_TEXT = WHITE
 COLOR_DEFAULT_BACKGROUND = BLACK
+COLOR_BRIGHT = (120, 80, 40)
+COLOR_NORMAL = (100, 60, 30)
+COLOR_DIM = (80, 60, 30)
 
 FONT_SIZE_MEDIUM: FontSize = 50
 FONT_SIZE_LARGE: FontSize = 100

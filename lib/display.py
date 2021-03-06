@@ -13,9 +13,9 @@ BLUE: Color = (0, 0, 255)
 
 COLOR_DEFAULT_TEXT = WHITE
 COLOR_DEFAULT_BACKGROUND = BLACK
-COLOR_BRIGHT = (120, 80, 40)
-COLOR_NORMAL = (100, 60, 30)
-COLOR_DIM = (80, 60, 30)
+COLOR_BRIGHT = (200, 120, 60)
+COLOR_NORMAL = (160, 80, 40)
+COLOR_DIM = (120, 60, 30)
 
 FONT_SIZE_MEDIUM: FontSize = 50
 FONT_SIZE_LARGE: FontSize = 100
@@ -25,11 +25,13 @@ FONT_SIZE_DEFAULT = 25
 class Display:
 
     device = '/dev/fb1'
+    videodriver = 'fbcon'
     rect = pygame.Rect(0, 0, 320, 240)
 
     def __init__(self, event_manager: EventManager):
         self.event_manager = event_manager
         os.putenv('SDL_FBDEV', self.device)
+        os.putenv('SDL_VIDEODRIVER', self.videodriver)
         pygame.init()
         pygame.mouse.set_visible(False)
         self.bg_color = BLACK

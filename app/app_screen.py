@@ -1,3 +1,5 @@
+import sys
+
 from lib import log
 from lib.base_screen import BaseScreen
 from lib.config import Config
@@ -28,7 +30,8 @@ class AppScreen(BaseScreen):
         self.event_manager.register('button', self.on_button1, 1)
         self.event_manager.register('button', self.on_button2, 2)
         self.event_manager.register('button', self.on_button3, 3)
-        self.event_manager.register('button', self.on_button4, 4)
+        # 4 is used for power, and is registered in /boot/config.txt
+        # self.event_manager.register('button', self.on_button4, 4)
         self.on_app_initialize()
 
     def on_app_initialize(self):
@@ -40,11 +43,12 @@ class AppScreen(BaseScreen):
     def on_button2(self):
         self.message('button2', duration=5)
 
-    def on_button3(self):
-        self.message('button3', duration=5)
+    @staticmethod
+    def on_button3():
+        sys.exit(0)
 
-    def on_button4(self):
-        self.message('button4', duration=5)
+    # def on_button4(self):
+    #     self.message('button4', duration=5)
 
     def message(self, text: str, duration: Interval = None):
         log.info(f'message: {text}')

@@ -7,7 +7,9 @@ from ..event_producer import EventProducer
 
 class ButtonEvents(EventProducer):
 
-    button_pins = [17, 22, 23, 27]
+    # Reserve button #4 for power (/boot/config.txt).
+    # button_pins = [17, 22, 23, 27]
+    button_pins = [17, 22, 23]
 
     def __init__(self):
         self.button_handlers: List[List[Callable]] = []
@@ -18,7 +20,7 @@ class ButtonEvents(EventProducer):
         self._clear_handlers()
 
     def _clear_handlers(self):
-        self.button_handlers: List[List[Callable]] = [[], [], [], []]
+        self.button_handlers = [[] for _idx in range(len(self.button_pins))]
 
     def register(self, function: Callable, *args, **kwargs):
         self.button_handlers[args[0] - 1].append(function)

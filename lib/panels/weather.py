@@ -102,10 +102,11 @@ class WeatherError(Exception):
 
 class WeatherPanel(Panel):
 
-    def __init__(self, latitude: float, longitude: float):
+    def __init__(self, latitude: float, longitude: float, weather_format: str):
         self.ready = True
         self.latitude = latitude
         self.longitude = longitude
+        self.weather_format = weather_format
         self.points_data_source = JSONDataSource(POINTS_SOURCE_NAME,
                                                  BASE_URL,
                                                  POINTS_SUB_URL,
@@ -159,7 +160,7 @@ class WeatherPanel(Panel):
     def on_display(self, viewport: Viewport):
         try:
             forecast = self.get_forecast(1)
-            self.text = forecast.format('%T, %S')
+            self.text = forecast.format(self.weather_format)
         except WeatherError as exc:
             self.text = f'*{exc}*'
         viewport.text(self.text)

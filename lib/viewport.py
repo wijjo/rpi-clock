@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from . import log
 from .display import Display, COLOR_DEFAULT_TEXT, COLOR_DEFAULT_BACKGROUND
-from .typing import Color, FontSize, Position, Rect, Duration
+from .typing import Color, FontSize, Position, Rect, Interval
 from .utility import sub_rect
 
 
@@ -53,7 +53,7 @@ class Viewport:
             return
         self.display.surface.fill(self.bg_color, rect=self.rect)
 
-    def text(self, text, duration: Duration = None):
+    def text(self, text, duration: Interval = None):
         if self.rect is None:
             return
         self.clear()

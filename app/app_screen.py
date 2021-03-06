@@ -4,7 +4,7 @@ from lib.config import Config
 from lib.display import Display, COLOR_DIM
 from lib.event_manager import EventManager
 from lib.screens import ScreenManager
-from lib.typing import Duration
+from lib.typing import Interval
 from lib.viewport import Viewport
 from lib.panels.message import MessagePanel
 
@@ -46,6 +46,6 @@ class AppScreen(BaseScreen):
     def on_button4(self):
         self.message('button4', duration=5)
 
-    def message(self, text: str, duration: Duration = None):
+    def message(self, text: str, duration: Interval = None):
         log.info(f'message: {text}')
         self.message_panel.set(text, duration=duration)

@@ -22,7 +22,7 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 def before_hook():
     if os.path.exists(PID_FILE):
-        with open(PID_FILE) as pid_file:
+        with open(PID_FILE, encoding='utf-8') as pid_file:
             pid = int(pid_file.read().strip())
             try:
                 os.kill(pid, 2)
@@ -30,7 +30,7 @@ def before_hook():
             except OSError:
                 log.info(f'Previous run (PID={pid}) must have died.')
         os.remove(PID_FILE)
-    with open(PID_FILE, 'w') as pid_file:
+    with open(PID_FILE, 'w', encoding='utf-8') as pid_file:
         pid_file.write(str(os.getpid()))
 
 

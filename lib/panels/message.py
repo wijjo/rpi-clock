@@ -2,7 +2,7 @@ from typing import Optional
 
 from ..event_manager import EventManager
 from ..panel import Panel
-from ..typing import Duration
+from ..typing import Interval
 from ..viewport import Viewport
 
 
@@ -11,9 +11,9 @@ class MessagePanel(Panel):
     def __init__(self):
         self.text = ''
         self.previous_text = ''
-        self.duration: Optional[Duration] = None
+        self.duration: Optional[Interval] = None
 
-    def set(self, text: str, duration: Duration = None):
+    def set(self, text: str, duration: Interval = None):
         self.text = text
         self.duration = duration
 

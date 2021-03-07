@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, Dict
 
 from . import log
 from .event_manager import EventManager
 from .panel import Panel
+from .base_screen import BaseScreen
 from .viewport import Viewport
 
 
@@ -16,7 +17,7 @@ class ScreenManager:
 
     def __init__(self, event_manager: EventManager):
         self.event_manager = event_manager
-        self.screens = {}
+        self.screens: Dict[str, BaseScreen] = {}
         self.current: Optional[str] = None
 
     def add_screen(self, name, screen):
@@ -31,3 +32,8 @@ class ScreenManager:
             else:
                 log.error(f'Unable to show unknown screen name "{name}".')
                 self.current = None
+
+    def force_refresh(self):
+        if self.current is not None:
+            log.info('Force screen refresh.')
+            self.screens[self.current].refresh()

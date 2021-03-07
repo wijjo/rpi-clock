@@ -2,24 +2,9 @@ import os
 import pygame
 
 from .event_manager import EventManager
-from .typing import Color, FontSize
 
-WHITE: Color = (255, 255, 255)
-BLACK: Color = (0, 0, 0)
-GREY: Color = (128, 128, 128)
-RED: Color = (255, 0, 0)
-GREEN: Color = (0, 255, 0)
-BLUE: Color = (0, 0, 255)
-
-COLOR_DEFAULT_TEXT = WHITE
-COLOR_DEFAULT_BACKGROUND = BLACK
-COLOR_BRIGHT = (200, 120, 60)
-COLOR_NORMAL = (160, 80, 40)
-COLOR_DIM = (120, 60, 30)
-
-FONT_SIZE_MEDIUM: FontSize = 50
-FONT_SIZE_LARGE: FontSize = 100
-FONT_SIZE_DEFAULT = 25
+COLOR_DEFAULT_FOREGROUND = (255, 255, 255)
+COLOR_DEFAULT_BACKGROUND = (0, 0, 0)
 
 
 class Display:
@@ -34,7 +19,7 @@ class Display:
         os.putenv('SDL_VIDEODRIVER', self.videodriver)
         pygame.init()
         pygame.mouse.set_visible(False)
-        self.bg_color = BLACK
+        self.bg_color = COLOR_DEFAULT_BACKGROUND
         self.surface = pygame.display.set_mode((self.rect.width, self.rect.height))
 
     def clear(self):

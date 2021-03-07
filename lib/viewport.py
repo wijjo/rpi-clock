@@ -2,11 +2,12 @@ import pygame
 from typing import Optional, List
 
 from . import log
-from .display import Display, COLOR_DEFAULT_TEXT, COLOR_DEFAULT_BACKGROUND
+from .display import Display, COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND
 from .typing import Color, FontSize, Position, Rect, Interval
 from .utility import sub_rect
 
 
+# noinspection DuplicatedCode
 class Viewport:
 
     def __init__(self, display: Display, rect: Optional[Rect]):
@@ -21,7 +22,7 @@ class Viewport:
         self.font_size = self.rect.height
         self.fx = 0
         self.fy = 0
-        self.color = COLOR_DEFAULT_TEXT
+        self.color = COLOR_DEFAULT_FOREGROUND
         self.bg_color = COLOR_DEFAULT_BACKGROUND
         self._font = None
 

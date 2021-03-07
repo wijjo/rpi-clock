@@ -102,7 +102,11 @@ class WeatherError(Exception):
 
 class WeatherPanel(Panel):
 
-    def __init__(self, latitude: float, longitude: float, weather_format: str):
+    def __init__(self,
+                 latitude: float,
+                 longitude: float,
+                 weather_format: str,
+                 user_agent: str = None):
         self.ready = True
         self.latitude = latitude
         self.longitude = longitude
@@ -111,11 +115,13 @@ class WeatherPanel(Panel):
                                                  BASE_URL,
                                                  POINTS_SUB_URL,
                                                  frequency=POINTS_CACHE_TIMEOUT,
-                                                 schema=POINTS_SCHEMA)
+                                                 schema=POINTS_SCHEMA,
+                                                 user_agent=user_agent)
         self.forecast_data_source = JSONDataSource('weather-forecast',
                                                    BASE_URL,
                                                    FORECAST_SUB_URL,
-                                                   frequency=FORECAST_CACHE_TIMEOUT)
+                                                   frequency=FORECAST_CACHE_TIMEOUT,
+                                                   user_agent=user_agent)
         self.text = 'Waiting for weather data...'
         self._noaa_params: Optional[NOAAParams] = None
 

@@ -1,0 +1,22 @@
+{
+  "latitude": 99.99,
+  "longitude": 99.99,
+  "user_agent": "(example.com, me@example.com)",
+  "time1_color": [220, 60, 30],
+  "time1_font_size": 144,
+  "time1_format": "%H:%M",
+  "time2_color": [130, 30, 15],
+  "time2_font_size": 72,
+  "time2_format": "%S",
+  "date_color": [30, 60, 200],
+  "date_format": "%a %b %d %Y",
+  "date_font_size": 48,
+  "weather1_color": [200, 60, 30],
+  "weather1_font_size": 28,
+  "weather1_format": "%T - %W",
+  "weather2_color": [180, 50, 25],
+  "weather2_font_size": 28,
+  "weather2_format": "%S",
+  "message_color": [120, 60, 30],
+  "message_font_size": 28
+}

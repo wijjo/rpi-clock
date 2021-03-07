@@ -1,13 +1,16 @@
-from typing import Callable
+from .event_handler import EventHandler
 
 
 class EventProducer:
 
-    def register(self, function: Callable, *args, **kwargs):
+    def register(self, handler: EventHandler, *args, **kwargs):
         raise NotImplementedError
 
     def clear(self):
         raise NotImplementedError
 
     def tick(self):
+        raise NotImplementedError
+
+    def send(self, *args, **kwargs):
         raise NotImplementedError

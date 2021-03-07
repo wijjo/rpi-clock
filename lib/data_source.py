@@ -2,7 +2,7 @@ import json
 import os
 from time import time
 from urllib.parse import quote
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from typing import Dict, List, Optional, Union, Any
 
 from . import log
@@ -19,6 +19,7 @@ class JSONDataSource:
     def __init__(self,
                  name: str,
                  *url_parts: str,
+                 user_agent: str = None,
                  frequency: Interval = None,
                  schema: Schema = None):
         """
@@ -36,10 +37,12 @@ class JSONDataSource:
 
         :param name: data source name
         :param url: download URL, possibly including {<name>} template fields
+        :param user_agent: optional user agent string
         :param frequency: update/cache frequency in seconds (default: not cached)
         :param schema: simple schema used to check for missing properties
         """
         self.name = name
+        self.user_agent = user_agent or 'Mozilla'
         self.url = ''.join(url_parts)
         self.frequency = frequency
         self.schema = schema
@@ -157,7 +160,8 @@ class JSONDataSource:
         log.info(f'Download: {url}')
         # noinspection PyBroadException
         try:
-            response = urlopen(url)
+            request = Request(url, data=None, headers={'User-Agent': self.user_agent})
+            response = urlopen(request)
             raw_data = response.read()
             data = json.loads(raw_data)
             if not self._check_data(data, self.schema):

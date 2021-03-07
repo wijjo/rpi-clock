@@ -1,4 +1,5 @@
 from time import localtime, strftime
+from typing import Optional
 
 from ..event_manager import EventManager
 from ..panel import Panel
@@ -8,7 +9,7 @@ from ..viewport import Viewport
 class TimePanel(Panel):
 
     def __init__(self, time_format: str):
-        def _check_format(*letters):
+        def _check_format(*letters: str) -> bool:
             for letter in letters:
                 if f'%{letter}' in time_format:
                     return True
@@ -21,12 +22,14 @@ class TimePanel(Panel):
         self.use_hour = _check_format('H', 'I')
         self.use_minute = _check_format('M')
         self.use_second = _check_format('S')
-        self.local_time = localtime()
+        self.local_time: Optional[float] = None
 
     def on_initialize(self, event_manager: EventManager):
         pass
 
     def on_display(self, viewport: Viewport):
+        if self.local_time is None:
+            self.local_time = localtime()
         viewport.text(strftime(self.time_format, self.local_time))
         self.local_time = self.local_time
 

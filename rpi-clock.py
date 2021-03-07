@@ -9,7 +9,6 @@ if os.getuid() != 0:
     sys.exit(1)
 
 from lib import log
-from lib.config import Config
 from lib.controller import Controller
 
 from app.main_screen import MainScreen
@@ -19,8 +18,7 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 def main():
     log.info('Create controller.')
-    config = Config(CONFIG_PATH)
-    controller = Controller(config)
+    controller = Controller(CONFIG_PATH)
     log.info('Create main screen.')
     controller.add_screen('main', MainScreen)
     log.info('Start main loop.')

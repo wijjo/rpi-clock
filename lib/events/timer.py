@@ -1,6 +1,8 @@
 from time import time
-from typing import Callable
+from typing import List
 
+from .. import log
+from ..event_handler import EventHandler
 from ..event_producer import EventProducer
 from ..timer import Timer
 
@@ -8,22 +10,38 @@ from ..timer import Timer
 class TimerEvents(EventProducer):
 
     def __init__(self):
-        self.timers = []
+        self.permanent_timers: List[Timer] = []
+        self.temporary_timers: List[Timer] = []
 
-    def register(self, function: Callable, *args, **kwargs):
+    def register(self, handler: EventHandler, *args, **kwargs):
         duration = args[0]
         max_count = kwargs.pop('max_count', None)
-        self.timers.append(Timer(duration, function, max_count=max_count))
+        timer = Timer(duration, handler.function, max_count=max_count)
+        if handler.permanent:
+            self.permanent_timers.append(timer)
+        else:
+            self.temporary_timers.append(timer)
 
     def tick(self):
         time_now = time()
         active_timers = []
-        for timer in self.timers:
+        # Permanent timers can expire, just like temporary timers, but they do
+        # persist beyond clearing.
+        for timer in self.permanent_timers:
             if timer.is_active() and timer.check(check_time=time_now):
                 timer.function()
             if timer.is_active():
                 active_timers.append(timer)
-        self.timers = active_timers
+        self.permanent_timers = active_timers
+        for timer in self.temporary_timers:
+            if timer.is_active() and timer.check(check_time=time_now):
+                timer.function()
+            if timer.is_active():
+                active_timers.append(timer)
+        self.temporary_timers = active_timers
 
     def clear(self):
-        self.timers = []
+        self.temporary_timers = []
+
+    def send(self, *args, **kwargs):
+        log.error('Timer event producer does not support send().')

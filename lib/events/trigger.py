@@ -18,7 +18,7 @@ class TriggerEvents(EventProducer):
     def __init__(self):
         self.permanent_handlers: Dict[str, Callable] = {}
         self.temporary_handlers: Dict[str, Callable] = {}
-        self.events: List[TriggerEvent] = []
+        self.triggers: List[TriggerEvent] = []
 
     def register(self, handler: EventHandler, *args, **kwargs):
         trigger_name = args[0]
@@ -28,12 +28,13 @@ class TriggerEvents(EventProducer):
             self.temporary_handlers[trigger_name] = handler.function
 
     def tick(self):
-        for event in self.events:
-            event.function(*event.args, **event.kwargs)
+        for trigger in self.triggers:
+            trigger.function(*trigger.args, **trigger.kwargs)
+        self.triggers = []
 
     def clear(self):
         self.temporary_handlers = {}
-        self.events = []
+        self.triggers = []
 
     def send(self, *args, **kwargs):
         trigger_name = args[0]
@@ -41,6 +42,11 @@ class TriggerEvents(EventProducer):
         if not function:
             function = self.temporary_handlers.get(trigger_name)
         if function is not None:
-            self.events.append(TriggerEvent(function, list(args[1:]), kwargs))
+            self.triggers.append(TriggerEvent(function, list(args[1:]), kwargs))
         else:
             log.error(f'Unknown trigger name "{trigger_name}" sent.')
+
+    def display_name(self) -> str:
+        handler_count = len(self.permanent_handlers) + len(self.temporary_handlers)
+        trigger_count = len(self.triggers)
+        return f'Timer[{handler_count} handlers, {trigger_count} triggers]'

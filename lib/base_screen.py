@@ -33,21 +33,20 @@ class BaseScreen:
         """
         self.on_initialize_events()
         self.event_manager.register('tick', self.on_tick)
-        self.refresh()
+        self.on_create_viewports()
+        self.on_configure_viewports()
+        self.on_create_panels()
+        for screen_panel in self.screen_panels:
+            screen_panel.panel.on_initialize_events(self.event_manager)
+            screen_panel.panel.on_display(screen_panel.viewport)
 
     def refresh(self):
         """
         Refresh screen.
         """
-        self.on_initialize_display()
+        self.on_configure_viewports()
         for screen_panel in self.screen_panels:
-            screen_panel.panel.on_initialize(self.event_manager)
-        self.display_panels(force=True)
-
-    def display_panels(self, force=False):
-        for screen_panel in self.screen_panels:
-            if force or screen_panel.panel.on_check():
-                screen_panel.panel.on_display(screen_panel.viewport)
+            screen_panel.panel.on_display(screen_panel.viewport)
 
     def on_initialize_events(self):
         """
@@ -55,9 +54,21 @@ class BaseScreen:
         """
         raise NotImplementedError
 
-    def on_initialize_display(self):
+    def on_create_viewports(self):
         """
-        Required hook for sub-class display initialization.
+        Required hook for sub-class viewport creation.
+        """
+        raise NotImplementedError
+
+    def on_configure_viewports(self):
+        """
+        Required hook for sub-class viewport configuration.
+        """
+        raise NotImplementedError
+
+    def on_create_panels(self):
+        """
+        Required hook for sub-class panel panel.
         """
         raise NotImplementedError
 
@@ -65,4 +76,6 @@ class BaseScreen:
         """
         Called to update panels.
         """
-        self.display_panels()
+        for screen_panel in self.screen_panels:
+            if screen_panel.panel.on_check():
+                screen_panel.panel.on_display(screen_panel.viewport)

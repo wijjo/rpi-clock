@@ -134,6 +134,7 @@ class JSONDataSource:
             for name, sub_schema in schema.items():
                 if name not in data:
                     return False
+                # noinspection PyUnresolvedReferences
                 if not cls._check_data(data[name], sub_schema):
                     return False
             return True

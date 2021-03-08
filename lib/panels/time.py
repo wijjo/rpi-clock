@@ -24,7 +24,7 @@ class TimePanel(Panel):
         self.use_second = _check_format('S')
         self.local_time: Optional[float] = None
 
-    def on_initialize(self, event_manager: EventManager):
+    def on_initialize_events(self, event_manager: EventManager):
         pass
 
     def on_display(self, viewport: Viewport):

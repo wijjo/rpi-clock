@@ -4,7 +4,7 @@ from typing import Optional
 from lib import log
 from lib.base_screen import BaseScreen
 from lib.config import Config
-from lib.display import Display, COLOR_DEFAULT_FOREGROUND
+from lib.display import Display
 from lib.event_manager import EventManager
 from lib.typing import Interval
 from lib.viewport import Viewport
@@ -18,7 +18,7 @@ class AppScreen(BaseScreen):
                  display: Display,
                  event_manager: EventManager):
         super().__init__(config, display, event_manager)
-        # Populated in on_initialize_display()
+        # Viewport stubs get populated in on_create_viewports().
         self.body_viewport: Optional[Viewport] = None
         self.message_viewport: Optional[Viewport] = None
         self.message_panel: Optional[MessagePanel] = None
@@ -27,20 +27,32 @@ class AppScreen(BaseScreen):
         self.event_manager.register('button', self.on_button1, 1)
         self.event_manager.register('button', self.on_button2, 2)
         self.event_manager.register('button', self.on_button3, 3)
-        # 4 is used for power, and is registered in /boot/config.txt
+        # Button #4 is used for power (see /boot/config.txt).
         # self.event_manager.register('button', self.on_button4, 4)
 
-    def on_initialize_display(self):
-        # Create outer viewport structure and message panel.
-        log.info('Initialize application display.')
+    def on_create_viewports(self):
+        log.info('Initialize base application screen.')
         outer_viewport = Viewport(self.display, self.display.rect)
         self.body_viewport, self.message_viewport = outer_viewport.vsplit(210)
-        self.message_panel = MessagePanel()
-        self.message_viewport.configure(fx=0, fy=1, color=COLOR_DEFAULT_FOREGROUND)
-        self.add_panel(self.message_viewport, self.message_panel)
-        self.on_initialize_app_display(self.body_viewport)
+        self.on_app_create_viewports(self.body_viewport)
 
-    def on_initialize_app_display(self, viewport: Viewport):
+    def on_configure_viewports(self):
+        self.message_viewport.configure(font_size=self.config.message_font_size,
+                                        color=self.config.message_color)
+        self.on_app_configure_viewports()
+
+    def on_create_panels(self):
+        self.message_panel = MessagePanel()
+        self.add_panel(self.message_viewport, self.message_panel)
+        self.on_app_create_panels()
+
+    def on_app_create_viewports(self, viewport: Viewport):
+        raise NotImplementedError
+
+    def on_app_configure_viewports(self):
+        raise NotImplementedError
+
+    def on_app_create_panels(self):
         raise NotImplementedError
 
     def on_button1(self):

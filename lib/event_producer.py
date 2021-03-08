@@ -14,3 +14,6 @@ class EventProducer:
 
     def send(self, *args, **kwargs):
         raise NotImplementedError
+
+    def display_name(self) -> str:
+        raise NotImplementedError

@@ -26,3 +26,7 @@ class TickEvents(EventProducer):
 
     def send(self, *args, **kwargs):
         log.error('Tick event producer does not support send().')
+
+    def display_name(self) -> str:
+        handler_count = len(self.temporary_tick_handlers) + len(self.permanent_tick_handlers)
+        return f'Tick[{handler_count} handlers]'

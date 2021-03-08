@@ -17,7 +17,7 @@ class MessagePanel(Panel):
         self.text = text
         self.duration = duration
 
-    def on_initialize(self, event_manager: EventManager):
+    def on_initialize_events(self, event_manager: EventManager):
         pass
 
     def on_display(self, viewport: Viewport):

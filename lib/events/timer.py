@@ -24,24 +24,27 @@ class TimerEvents(EventProducer):
 
     def tick(self):
         time_now = time()
-        active_timers = []
-        # Permanent timers can expire, just like temporary timers, but they do
-        # persist beyond clearing.
+        active_permanent_timers = []
         for timer in self.permanent_timers:
             if timer.is_active() and timer.check(check_time=time_now):
                 timer.function()
             if timer.is_active():
-                active_timers.append(timer)
-        self.permanent_timers = active_timers
+                active_permanent_timers.append(timer)
+        self.permanent_timers = active_permanent_timers
+        active_temporary_timers = []
         for timer in self.temporary_timers:
             if timer.is_active() and timer.check(check_time=time_now):
                 timer.function()
             if timer.is_active():
-                active_timers.append(timer)
-        self.temporary_timers = active_timers
+                active_temporary_timers.append(timer)
+        self.temporary_timers = active_temporary_timers
 
     def clear(self):
         self.temporary_timers = []
 
     def send(self, *args, **kwargs):
         log.error('Timer event producer does not support send().')
+
+    def display_name(self) -> str:
+        handler_count = len(self.permanent_timers) + len(self.temporary_timers)
+        return f'Timer[{handler_count} handlers]'

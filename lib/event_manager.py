@@ -1,3 +1,4 @@
+from time import time
 from typing import Dict, Callable
 
 from . import log
@@ -41,4 +42,9 @@ class EventManager:
 
     def tick(self):
         for event_producer in self.producers.values():
+            t1 = time()
             event_producer.tick()
+            t2 = time()
+            if t2 - t1 > .1:
+                log.warning(f'Slow {event_producer.display_name()} event'
+                            f' producer took {t2 - t1:.2f} seconds.')

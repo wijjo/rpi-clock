@@ -10,12 +10,11 @@ from .events.tick import TickEvents
 from .events.trigger import TriggerEvents
 from .screens import ScreenManager
 
+POLL_INTERVAL = 0.1
 UPDATE_FREQUENCY = 60
 
 
 class Controller:
-
-    poll_interval = 0.1
 
     def __init__(self, config_path: str):
         self.config = Config(config_path)
@@ -47,4 +46,4 @@ class Controller:
         self.screen_manager.show_screen(initial_screen_name)
         while True:
             self.event_manager.tick()
-            sleep(self.poll_interval)
+            sleep(POLL_INTERVAL)

@@ -107,7 +107,6 @@ class WeatherPanel(Panel):
                  longitude: float,
                  weather_format: str,
                  user_agent: str = None):
-        self.ready = True
         self.latitude = latitude
         self.longitude = longitude
         self.weather_format = weather_format
@@ -122,13 +121,21 @@ class WeatherPanel(Panel):
                                                    FORECAST_SUB_URL,
                                                    frequency=FORECAST_CACHE_TIMEOUT,
                                                    user_agent=user_agent)
-        self.text = 'Waiting for weather data...'
+        self.text = None
+        self.ready = False
         self._noaa_params: Optional[NOAAParams] = None
+        self.do_update()
 
-    def on_initialize(self, event_manager: EventManager):
-        def _timeout():
-            self.ready = True
-        event_manager.register('timer', _timeout, POLL_FREQUENCY)
+    def do_update(self):
+        try:
+            forecast = self.get_forecast(1)
+            self.text = forecast.format(self.weather_format)
+        except WeatherError as exc:
+            self.text = f'*{exc}*'
+        self.ready = True
+
+    def on_initialize_events(self, event_manager: EventManager):
+        event_manager.register('timer', self.do_update, POLL_FREQUENCY)
 
     @property
     def noaa_params(self) -> NOAAParams:
@@ -164,11 +171,6 @@ class WeatherPanel(Panel):
         raise WeatherError(f'NOAA forecast #{forecast_idx} not found')
 
     def on_display(self, viewport: Viewport):
-        try:
-            forecast = self.get_forecast(1)
-            self.text = forecast.format(self.weather_format)
-        except WeatherError as exc:
-            self.text = f'*{exc}*'
         viewport.text(self.text)
         self.ready = False
 

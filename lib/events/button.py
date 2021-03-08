@@ -36,3 +36,6 @@ class ButtonEvents(EventProducer):
 
     def send(self, *args, **kwargs):
         log.error('Button event producer does not support send().')
+
+    def display_name(self) -> str:
+        return f'Button[{len(self.button_handlers)} handlers]'

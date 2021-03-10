@@ -8,9 +8,7 @@ from ..event_producer import EventProducer
 
 class ButtonEvents(EventProducer):
 
-    # Reserve button #4 for power (/boot/config.txt).
-    # button_pins = [17, 22, 23, 27]
-    button_pins = [17, 22, 23]
+    button_pins = [17, 22, 23, 27]
 
     def __init__(self):
         self.button_handlers: List[Optional[EventHandler]] = [None] * len(self.button_pins)

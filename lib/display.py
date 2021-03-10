@@ -17,11 +17,16 @@ class Display:
         self.event_manager = event_manager
         os.putenv('SDL_FBDEV', self.device)
         os.putenv('SDL_VIDEODRIVER', self.videodriver)
-        pygame.display.init()
         pygame.font.init()
+        pygame.display.init()
         pygame.mouse.set_visible(False)
         self.bg_color = COLOR_DEFAULT_BACKGROUND
         self.surface = pygame.display.set_mode((self.rect.width, self.rect.height))
+
+    @staticmethod
+    def shut_down():
+        pygame.display.quit()
+        pygame.font.quit()
 
     def clear(self):
         self.surface.fill(self.bg_color)

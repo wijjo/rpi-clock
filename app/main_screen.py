@@ -4,14 +4,15 @@ from lib import log
 from lib.config import Config
 from lib.display import Display
 from lib.event_manager import EventManager
+from lib.panels.message import MessagePanel
 from lib.panels.time import TimePanel
 from lib.panels.weather import WeatherPanel
+from lib.screen import Screen
+from lib.typing import Interval
 from lib.viewport import Viewport
 
-from .app_screen import AppScreen
 
-
-class MainScreen(AppScreen):
+class MainScreen(Screen):
 
     def __init__(self,
                  config: Config,
@@ -24,43 +25,70 @@ class MainScreen(AppScreen):
         self.date_viewport: Optional[Viewport] = None
         self.weather1_viewport: Optional[Viewport] = None
         self.weather2_viewport: Optional[Viewport] = None
+        self.message_viewport: Optional[Viewport] = None
+        self.message_panel: Optional[MessagePanel] = None
 
-    def on_app_create_viewports(self, viewport: Viewport):
-        log.info('Initialize main screen.')
-        (time_viewport,
-         self.date_viewport,
-         self.weather1_viewport,
-         self.weather2_viewport) = viewport.vsplit(120, 30, 30)
-        self.time1_viewport, self.time2_viewport = time_viewport.hsplit(260)
+    def on_initialize_events(self):
+        self.event_manager.register('button', self.on_button1, 1)
+        self.event_manager.register('button', self.on_button2, 2)
 
-    def on_app_configure_viewports(self):
+    def on_create_viewports(self):
+        log.info('Create main screen viewports.')
+        outer_viewport = Viewport(self.display, self.display.rect)
+        rows = outer_viewport.vsplit(*self.config.rows)
+        time_columns = rows[0].hsplit(self.config.panels.time1.width,
+                                      self.config.panels.time2.width)
+        self.time1_viewport = time_columns[0]
+        self.time2_viewport = time_columns[1]
+        self.date_viewport = rows[1]
+        self.weather1_viewport = rows[2]
+        self.weather2_viewport = rows[3]
+        self.message_viewport = self.weather2_viewport.overlay()
+
+    def on_configure_viewports(self):
+        log.info('Configure main screen panels.')
         self.time1_viewport.configure(fx=.5, fy=.5,
-                                      font_size=self.config.time1_font_size,
-                                      color=self.config.time1_color)
+                                      font_size=self.config.panels.time1.font_size,
+                                      color=self.config.panels.time1.color)
         self.time2_viewport.configure(fx=.5, fy=.5,
-                                      font_size=self.config.time2_font_size,
-                                      color=self.config.time2_color)
+                                      font_size=self.config.panels.time2.font_size,
+                                      color=self.config.panels.time2.color)
         self.date_viewport.configure(fx=.5, fy=1,
-                                     font_size=self.config.date_font_size,
-                                     color=self.config.date_color)
+                                     font_size=self.config.panels.date.font_size,
+                                     color=self.config.panels.date.color)
         self.weather1_viewport.configure(fx=.5, fy=1,
-                                         font_size=self.config.weather1_font_size,
-                                         color=self.config.weather1_color)
+                                         font_size=self.config.panels.weather1.font_size,
+                                         color=self.config.panels.weather1.color)
         self.weather2_viewport.configure(fx=.5, fy=1,
-                                         font_size=self.config.weather2_font_size,
-                                         color=self.config.weather2_color)
+                                         font_size=self.config.panels.weather2.font_size,
+                                         color=self.config.panels.weather2.color)
+        self.message_viewport.configure(font_size=self.config.panels.message.font_size,
+                                        color=self.config.panels.message.color)
 
-    def on_app_create_panels(self):
-        self.add_panel(self.time1_viewport, TimePanel(self.config.time1_format))
-        self.add_panel(self.time2_viewport, TimePanel(self.config.time2_format))
-        self.add_panel(self.date_viewport, TimePanel(self.config.date_format))
+    def on_create_panels(self):
+        log.info('Create main screen panels.')
+        self.add_panel(self.time1_viewport, TimePanel(self.config.panels.time1.format))
+        self.add_panel(self.time2_viewport, TimePanel(self.config.panels.time2.format))
+        self.add_panel(self.date_viewport, TimePanel(self.config.panels.date.format))
         self.add_panel(self.weather1_viewport,
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
-                                    self.config.weather1_format,
+                                    self.config.panels.weather1.format,
                                     user_agent=self.config.user_agent))
         self.add_panel(self.weather2_viewport,
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
-                                    self.config.weather2_format,
+                                    self.config.panels.weather2.format,
                                     user_agent=self.config.user_agent))
+        self.message_panel = MessagePanel()
+        self.add_panel(self.message_viewport, self.message_panel)
+
+    def message(self, text: str, duration: Interval = None):
+        log.info(f'message: {text}')
+        self.message_panel.set(text, duration=duration)
+
+    def on_button1(self):
+        self.event_manager.send('trigger', 'screen', 'main')
+
+    def on_button2(self):
+        self.message('button2', duration=5)

@@ -17,6 +17,7 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
 def main():
+    log.info(f'Running rpi-clock as PID {os.getpid()}.')
     log.info('Create controller.')
     controller = Controller(CONFIG_PATH)
     log.info('Create main screen.')

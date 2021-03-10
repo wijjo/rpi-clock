@@ -4,6 +4,7 @@ from .config import Config
 from .display import Display
 from .event_manager import EventManager
 from .panel import Panel
+from .typing import Interval
 from .viewport import Viewport
 
 
@@ -13,7 +14,7 @@ class ScreenPanel:
         self.panel = panel
 
 
-class BaseScreen:
+class Screen:
 
     def __init__(self,
                  config: Config,
@@ -79,3 +80,12 @@ class BaseScreen:
         for screen_panel in self.screen_panels:
             if screen_panel.panel.on_check():
                 screen_panel.panel.on_display(screen_panel.viewport)
+
+    def message(self, text: str, duration: Interval = None):
+        """
+        Required override to display information messages on the screen.
+
+        :param text: text message to display
+        :param duration: optional duration before it gets cleared
+        """
+        raise NotImplementedError

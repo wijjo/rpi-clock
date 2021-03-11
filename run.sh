@@ -1,6 +1,8 @@
 #!/bin/sh
+# shellcheck disable=SC2006 disable=SC2086 disable=SC2024
 _uid=`id -u`
 _app_dir=`dirname $0`
+cd $_app_dir
 _script=$_app_dir/rpi-clock.py
 _log_file=$_app_dir/rpi-clock.log
 _pid_file=$_app_dir/rpi-clock.pid

@@ -9,8 +9,8 @@ from ..viewport import Viewport
 class MessagePanel(Panel):
 
     def __init__(self):
-        self.text = ''
-        self.previous_text = ''
+        self.text: Optional[str] = None
+        self.previous_text: Optional[str] = None
         self.duration: Optional[Interval] = None
 
     def set(self, text: str, duration: Interval = None):
@@ -21,8 +21,11 @@ class MessagePanel(Panel):
         pass
 
     def on_display(self, viewport: Viewport):
-        viewport.text(self.text, duration=self.duration)
-        self.previous_text = self.text
+        if self.text is not None:
+            viewport.text(self.text, duration=self.duration)
+            self.previous_text = self.text
 
     def on_check(self) -> bool:
-        return self.text != self.previous_text
+        return (self.text is not None
+                and (self.previous_text is None
+                     or self.text != self.previous_text))

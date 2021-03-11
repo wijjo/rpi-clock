@@ -19,6 +19,7 @@ class Viewport:
         """
         self.display = display
         self.rect = rect
+        self.font_name: Optional[str] = None
         self.font_size = self.rect.height
         self.fx = 0
         self.fy = 0
@@ -29,6 +30,7 @@ class Viewport:
     def configure(self,
                   fx: Position = None,
                   fy: Position = None,
+                  font_name: str = None,
                   font_size: FontSize = None,
                   color: Color = None,
                   bg_color: Color = None):
@@ -37,6 +39,7 @@ class Viewport:
 
         :param fx: relative horizontal position
         :param fy: relative vertical position
+        :param font_name: font name
         :param font_size: font size
         :param color: foreground color
         :param bg_color: background color
@@ -46,17 +49,21 @@ class Viewport:
             self.fx = fx
         if fy is not None:
             self.fy = fy
+        if font_name is not None:
+            self.font_name = font_name
         if font_size is not None:
             self.font_size = font_size
         if color is not None:
             self.color = color
         if bg_color is not None:
             self.bg_color = bg_color
+        # Discard font cache in case font parameters have changed.
+        self._font = None
 
     @property
     def font(self):
         if self._font is None:
-            self._font = pygame.font.Font(None, self.font_size)
+            self._font = pygame.font.Font(self.font_name, self.font_size)
         return self._font
 
     def clear(self):
@@ -74,6 +81,8 @@ class Viewport:
                              ftop=self.fy,
                              width=text_width,
                              height=text_height)
+        # log.info(f'sub_rect(outer_rect={self.rect} fleft={self.fx} ftop={self.fy}'
+        #          f' width={text_width} height={text_height}) -> {text_rect}')
         text_surface = self.font.render(text, True, self.color)
         self.display.surface.blit(text_surface, text_rect)
         pygame.display.update()

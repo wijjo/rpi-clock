@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from time import time
 from urllib.parse import quote
 from urllib.request import urlopen, Request
@@ -10,11 +11,13 @@ from .typing import Interval
 
 Schema = Union[Dict[str, Union[type, 'Schema']], List['Schema']]
 
+URL_STRIP_REGEX = re.compile(r'^[^/:]+://')
+
 
 class JSONDataSource:
     """ReST API JSON data source with optional caching to minimize API usage."""
 
-    cache_folder = '/tmp/rpi-clock/data-cache'
+    cache_folder = '/tmp/rpi-clock-cache'
 
     def __init__(self,
                  name: str,
@@ -55,7 +58,12 @@ class JSONDataSource:
         :param url: URL that provides the data online
         :return: path constructed to include properly-escaped URL string
         """
-        return os.path.join(cls.cache_folder, quote(url))
+        # Strip off leading https://, etc.. Escape inappropriate characters.
+        # Make sure the cache folder has only a single level of file folders.
+        strip_match = URL_STRIP_REGEX.match(url)
+        if strip_match is not None:
+            url = url[strip_match.end():]
+        return os.path.join(cls.cache_folder, quote(url).replace('/', '_'))
 
     @classmethod
     def get_cache_data(cls,
@@ -94,21 +102,26 @@ class JSONDataSource:
             return None
 
     @classmethod
-    def put_cache_data(cls, url: str, data: Any):
+    def write_cache(cls, url: str, text: str):
         """
         Write cache data.
 
+        Cache folders and files have open permissions so that they are easy for
+        any user to delete.
+
         :param url: URL to convert to a file path
-        :param data: data to save to cache
+        :param text: text data to save to cache
         """
         path = cls.get_cache_path(url)
-        # noinspection PyBroadException
         try:
             folder = os.path.dirname(path)
+            # TODO: This is hardcoded to allow the "pi" user to delete the cache.
             if not os.path.isdir(folder):
-                os.makedirs(folder)
+                os.system(f'mkdir {folder}')
+                os.system(f'chown pi:pi {folder}')
             with open(path, 'w', encoding='utf-8') as cache_file:
-                json.dump(data, cache_file)
+                cache_file.write(text)
+            os.system(f'chown pi:pi {path}')
         except Exception as exc:
             log.error(f'Failed to write or encode cached data for "{url}": {exc}')
             if os.path.isfile(path):
@@ -161,14 +174,20 @@ class JSONDataSource:
         log.info(f'Download: {url}')
         # noinspection PyBroadException
         try:
-            request = Request(url, data=None, headers={'User-Agent': self.user_agent})
+            request = Request(url)
+            # The National Weather Service wants the User-Agent header. For some
+            # unknown reason, the Accept header is needed in order to receive
+            # data for the correct timezone, or to properly handle local time.
+            request.add_header('User-Agent', self.user_agent)
+            request.add_header('Accept', '*/*')
             response = urlopen(request)
             raw_data = response.read()
             data = json.loads(raw_data)
             if not self._check_data(data, self.schema):
                 log.error(f'Data from "{url}" is missing expected properties.')
                 return None
-            self.put_cache_data(url, data)
+            json_text = json.dumps(data, indent=2)
+            self.write_cache(url, json_text)
         except Exception as exc:
             log.error(f'Failed to download or decode data from "{url}": {exc}')
             return None

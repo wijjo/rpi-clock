@@ -39,6 +39,10 @@ class MarginData:
         log.error(f'Bad margins value: {margins}')
         return cls(0, 0, 0, 0)
 
+    def __str__(self):
+        return f'MarginData(left={self.left}, top={self.top},' \
+               f' right={self.right}, bottom={self.bottom}'
+
 
 def sub_rect(outer_rect: pygame.Rect,
              left=None,
@@ -51,7 +55,8 @@ def sub_rect(outer_rect: pygame.Rect,
              fheight=None,
              margins: Margins = None):
     """Calculate sub-rect of outer rect using x, y, w, h values between 0 and 1."""
-    inner_rect = MarginData.from_raw(margins).adjust_rect(outer_rect)
+    margin_data = MarginData.from_raw(margins)
+    inner_rect = margin_data.adjust_rect(outer_rect)
     if fwidth is None:
         if width is None:
             width = inner_rect.width
@@ -77,4 +82,9 @@ def sub_rect(outer_rect: pygame.Rect,
     else:
         top = inner_rect.top + int(ftop * (inner_rect.height - height))
     ret_rect = pygame.Rect(left, top, width, height)
+    # log.info(f'margins={margins}  '
+    #          f'margin_data={margin_data}  '
+    #          f'outer_rect={outer_rect}  '
+    #          f'inner_rect={inner_rect}  '
+    #          f'ret_rect={ret_rect}')
     return ret_rect

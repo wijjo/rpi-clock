@@ -4,6 +4,7 @@ from lib import log
 from lib.config import Config
 from lib.display import Display
 from lib.event_manager import EventManager
+from lib.font_manager import FontManager
 from lib.panels.message import MessagePanel
 from lib.panels.time import TimePanel
 from lib.panels.weather import WeatherPanel
@@ -17,8 +18,9 @@ class MainScreen(Screen):
     def __init__(self,
                  config: Config,
                  display: Display,
-                 event_manager: EventManager):
-        super().__init__(config, display, event_manager)
+                 event_manager: EventManager,
+                 font_manager: FontManager):
+        super().__init__(config, display, event_manager, font_manager)
         # Viewport stubs get populated in on_app_create_viewports().
         self.time_viewport: Optional[Viewport] = None
         self.date_viewport: Optional[Viewport] = None
@@ -27,6 +29,7 @@ class MainScreen(Screen):
         self.weather2_viewport: Optional[Viewport] = None
         self.message_viewport: Optional[Viewport] = None
         self.message_panel: Optional[MessagePanel] = None
+        self.weather_user_agent = f'({self.config.domain}, {self.config.email})'
 
     def on_initialize_events(self):
         self.event_manager.register('button', self.on_button1, 1)
@@ -48,42 +51,50 @@ class MainScreen(Screen):
     # noinspection DuplicatedCode
     def on_configure_viewports(self):
         log.info('Configure main screen viewports.')
+        font_mono = self.font_manager.get_font(self.config.fonts.mono)
+        font_sans = self.font_manager.get_font(self.config.fonts.sans)
         self.time_viewport.configure(fx=self.config.panels.time.fx,
                                      fy=self.config.panels.time.fy,
-                                     font_name=self.config.panels.time.font_name,
+                                     font_name=font_mono,
                                      font_size=self.config.panels.time.font_size,
                                      color=self.config.panels.time.color,
-                                     bg_color=self.config.panels.time.bg_color)
+                                     bg_color=self.config.panels.time.bg_color,
+                                     margins=self.config.margins)
         self.date_viewport.configure(fx=self.config.panels.date.fx,
                                      fy=self.config.panels.date.fy,
-                                     font_name=self.config.panels.date.font_name,
+                                     font_name=font_sans,
                                      font_size=self.config.panels.date.font_size,
                                      color=self.config.panels.date.color,
-                                     bg_color=self.config.panels.date.bg_color)
+                                     bg_color=self.config.panels.date.bg_color,
+                                     margins=self.config.margins)
         self.seconds_viewport.configure(fx=self.config.panels.seconds.fx,
                                         fy=self.config.panels.seconds.fy,
-                                        font_name=self.config.panels.seconds.font_name,
+                                        font_name=font_sans,
                                         font_size=self.config.panels.seconds.font_size,
                                         color=self.config.panels.seconds.color,
-                                        bg_color=self.config.panels.seconds.bg_color)
+                                        bg_color=self.config.panels.seconds.bg_color,
+                                        margins=self.config.margins)
         self.weather1_viewport.configure(fx=self.config.panels.weather1.fx,
                                          fy=self.config.panels.weather1.fy,
-                                         font_name=self.config.panels.weather1.font_name,
+                                         font_name=font_sans,
                                          font_size=self.config.panels.weather1.font_size,
                                          color=self.config.panels.weather1.color,
-                                         bg_color=self.config.panels.weather1.bg_color)
+                                         bg_color=self.config.panels.weather1.bg_color,
+                                         margins=self.config.margins)
         self.weather2_viewport.configure(fx=self.config.panels.weather2.fx,
                                          fy=self.config.panels.weather2.fy,
-                                         font_name=self.config.panels.weather2.font_name,
+                                         font_name=font_sans,
                                          font_size=self.config.panels.weather2.font_size,
                                          color=self.config.panels.weather2.color,
-                                         bg_color=self.config.panels.weather2.bg_color)
+                                         bg_color=self.config.panels.weather2.bg_color,
+                                         margins=self.config.margins)
         self.message_viewport.configure(fx=self.config.panels.message.fx,
                                         fy=self.config.panels.message.fy,
-                                        font_name=self.config.panels.message.font_name,
+                                        font_name=font_sans,
                                         font_size=self.config.panels.message.font_size,
                                         color=self.config.panels.message.color,
-                                        bg_color=self.config.panels.message.bg_color)
+                                        bg_color=self.config.panels.message.bg_color,
+                                        margins=self.config.margins)
 
     def on_create_panels(self):
         log.info('Create main screen panels.')
@@ -94,12 +105,12 @@ class MainScreen(Screen):
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
                                     self.config.panels.weather1.format,
-                                    user_agent=self.config.user_agent))
+                                    user_agent=self.weather_user_agent))
         self.add_panel(self.weather2_viewport,
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
                                     self.config.panels.weather2.format,
-                                    user_agent=self.config.user_agent))
+                                    user_agent=self.weather_user_agent))
         self.message_panel = MessagePanel()
         self.add_panel(self.message_viewport, self.message_panel)
 

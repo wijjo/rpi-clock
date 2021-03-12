@@ -3,6 +3,7 @@ from typing import List
 from .config import Config
 from .display import Display
 from .event_manager import EventManager
+from .font_manager import FontManager
 from .panel import Panel
 from .typing import Interval
 from .viewport import Viewport
@@ -19,10 +20,12 @@ class Screen:
     def __init__(self,
                  config: Config,
                  display: Display,
-                 event_manager: EventManager):
+                 event_manager: EventManager,
+                 font_manager: FontManager):
         self.config = config
         self.display = display
         self.event_manager = event_manager
+        self.font_manager = font_manager
         self.screen_panels: List[ScreenPanel] = []
 
     def add_panel(self, viewport: Viewport, panel: Panel):

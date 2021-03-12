@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from . import log
 from .display import Display, COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND
-from .typing import Color, FontSize, Position, Rect, Interval
+from .typing import Color, FontSize, Position, Rect, Interval, Margins
 from .utility import sub_rect
 
 
@@ -25,6 +25,7 @@ class Viewport:
         self.fy = 0
         self.color = COLOR_DEFAULT_FOREGROUND
         self.bg_color = COLOR_DEFAULT_BACKGROUND
+        self.margins: Optional[Margins] = None
         self._font = None
 
     def configure(self,
@@ -33,7 +34,8 @@ class Viewport:
                   font_name: str = None,
                   font_size: FontSize = None,
                   color: Color = None,
-                  bg_color: Color = None):
+                  bg_color: Color = None,
+                  margins: Margins = None):
         """
         Configure viewport display attributes.
 
@@ -43,7 +45,7 @@ class Viewport:
         :param font_size: font size
         :param color: foreground color
         :param bg_color: background color
-        :return:
+        :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
         """
         if fx is not None:
             self.fx = fx
@@ -57,6 +59,7 @@ class Viewport:
             self.color = color
         if bg_color is not None:
             self.bg_color = bg_color
+        self.margins = margins
         # Discard font cache in case font parameters have changed.
         self._font = None
 
@@ -80,9 +83,8 @@ class Viewport:
                              fleft=self.fx,
                              ftop=self.fy,
                              width=text_width,
-                             height=text_height)
-        # log.info(f'sub_rect(outer_rect={self.rect} fleft={self.fx} ftop={self.fy}'
-        #          f' width={text_width} height={text_height}) -> {text_rect}')
+                             height=text_height,
+                             margins=self.margins)
         text_surface = self.font.render(text, True, self.color)
         self.display.surface.blit(text_surface, text_rect)
         pygame.display.update()

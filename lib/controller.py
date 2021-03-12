@@ -12,10 +12,10 @@ from .events.button import ButtonEvents
 from .events.timer import TimerEvents
 from .events.tick import TickEvents
 from .events.trigger import TriggerEvents
+from .font_manager import FontManager
 from .screen_manager import ScreenManager
 
 POLL_INTERVAL = 0.1
-UPDATE_FREQUENCY = 60
 
 
 class Controller:
@@ -24,6 +24,7 @@ class Controller:
 
     def __init__(self, config_path: str):
         assert self.instances == 0
+        base_folder = os.path.dirname(config_path)
         self.instances += 1
         self.config = Config(config_path)
         self.event_manager = EventManager()
@@ -32,10 +33,12 @@ class Controller:
         self.event_manager.add_producer('tick', TickEvents())
         self.event_manager.add_producer('trigger', TriggerEvents())
         # Event handlers must be flagged permanent in order to survive screen initialization.
-        self.event_manager.register('timer', self.update, UPDATE_FREQUENCY, permanent=True)
+        self.event_manager.register('timer', self.update, self.config.update_interval,
+                                    permanent=True)
         self.event_manager.register('trigger', self.activate_screen, 'screen', permanent=True)
         self.event_manager.register('button', self.on_button3, 3, permanent=True)
         self.event_manager.register('button', self.on_button4, 4, permanent=True)
+        self.font_manager = FontManager(os.path.join(base_folder, 'fonts'))
         self.screen_manager = ScreenManager(self.event_manager)
         self.display = Display(self.event_manager)
         self.display.clear()
@@ -49,7 +52,8 @@ class Controller:
     def add_screen(self, name, screen_class):
         self.screen_manager.add_screen(name, screen_class(self.config,
                                                           self.display,
-                                                          self.event_manager))
+                                                          self.event_manager,
+                                                          self.font_manager))
 
     def update(self):
         if self.config.update():

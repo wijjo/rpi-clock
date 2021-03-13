@@ -14,6 +14,7 @@ from .events.tick import TickEvents
 from .events.trigger import TriggerEvents
 from .font_manager import FontManager
 from .screen_manager import ScreenManager
+from .viewport import Viewport
 
 POLL_INTERVAL = 0.1
 
@@ -42,6 +43,7 @@ class Controller:
         self.screen_manager = ScreenManager(self.event_manager)
         self.display = Display(self.event_manager)
         self.display.clear()
+        self.outer_viewport = Viewport(self.display, self.display.rect)
         atexit.register(self.cleanup)
 
         def _signal_handler(signum, _frame):
@@ -51,7 +53,6 @@ class Controller:
 
     def add_screen(self, name, screen_class):
         self.screen_manager.add_screen(name, screen_class(self.config,
-                                                          self.display,
                                                           self.event_manager,
                                                           self.font_manager))
 
@@ -61,7 +62,7 @@ class Controller:
             self.screen_manager.force_refresh()
 
     def activate_screen(self, screen_name: str):
-        self.screen_manager.show_screen(screen_name)
+        self.screen_manager.show_screen(screen_name, self.outer_viewport)
 
     def on_button3(self):
         self.screen_manager.current_screen.message('Exiting...')
@@ -78,7 +79,7 @@ class Controller:
         self.display.shut_down()
 
     def main(self, initial_screen_name):
-        self.screen_manager.show_screen(initial_screen_name)
+        self.screen_manager.show_screen(initial_screen_name, self.outer_viewport)
         while True:
             self.event_manager.tick()
             sleep(POLL_INTERVAL)

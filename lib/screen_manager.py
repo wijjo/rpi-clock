@@ -23,11 +23,11 @@ class ScreenManager:
     def add_screen(self, name, screen):
         self.screens[name] = screen
 
-    def show_screen(self, name):
+    def show_screen(self, name, outer_viewport: Viewport):
         if name != self.current:
             self.event_manager.clear()
             if name in self.screens:
-                self.screens[name].initialize()
+                self.screens[name].initialize(outer_viewport)
                 self.current = name
             else:
                 log.error(f'Unable to show unknown screen name "{name}".')

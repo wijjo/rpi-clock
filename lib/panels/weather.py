@@ -86,7 +86,7 @@ class NOAAForecast:
         """
         text = template
         if '%T' in text:
-            text = text.replace('%T', f'{self.temperature}\u00b0{self.temperature_unit}')
+            text = text.replace('%T', f'{self.temperature}\u00b0')
         if '%W' in text:
             text = text.replace('%W', f'{self.wind_speed} {self.wind_direction}')
         if '%S' in text:

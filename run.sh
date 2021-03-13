@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2006 disable=SC2086 disable=SC2024
+# shellcheck disable=SC2006 disable=SC2086 disable=SC2024 disable=SC2164
 _uid=`id -u`
 _app_dir=`dirname $0`
 cd $_app_dir

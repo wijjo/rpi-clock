@@ -13,5 +13,11 @@ class FontManager:
                     file_path = os.path.join(dir_path, file_name)
                     self.fonts_by_name[base_name.lower()] = file_path
 
-    def get_font(self, name: str) -> Optional[str]:
+    def get_font_path(self, name: str) -> Optional[str]:
+        """
+        Look up font path based on name.
+
+        :param name: font name
+        :return: path or None if not found
+        """
         return self.fonts_by_name.get(name.lower())

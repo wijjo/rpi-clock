@@ -153,7 +153,11 @@ class Viewport:
             image_surface = image_surface.convert_alpha()
         else:
             image_surface = image_surface.convert()
-        self.display.surface.blit(image_surface, self.inner_rect)
+        image_rect = sub_rect(self.rect,
+                              fleft=self.fx,
+                              ftop=self.fy,
+                              margins=self.margins)
+        self.display.surface.blit(image_surface, image_rect)
         pygame.display.update()
         if duration is not None:
             self.display.event_manager.register('timer', self.clear, duration, max_count=1)

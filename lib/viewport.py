@@ -1,8 +1,10 @@
+import os
 import pygame
 from typing import Optional, List
 
 from . import log
-from .display import Display, COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND
+from .display import Display, \
+    COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND, COLOR_DEFAULT_BORDER
 from .typing import Color, FontSize, Position, Rect, Interval, Margins
 from .utility import sub_rect
 
@@ -19,12 +21,14 @@ class Viewport:
         """
         self.display = display
         self.rect = rect
+        self.inner_rect = self.rect
         self.font_path: Optional[str] = None
         self.font_size = self.rect.height
         self.fx = 0
         self.fy = 0
         self.color = COLOR_DEFAULT_FOREGROUND
         self.bg_color = COLOR_DEFAULT_BACKGROUND
+        self.border_color = COLOR_DEFAULT_BORDER
         self.margins: Optional[Margins] = None
         self._font = None
 
@@ -35,6 +39,7 @@ class Viewport:
                   font_size: FontSize = None,
                   color: Color = None,
                   bg_color: Color = None,
+                  border_color: Color = None,
                   margins: Margins = None):
         """
         Configure viewport display attributes.
@@ -45,6 +50,7 @@ class Viewport:
         :param font_size: font size
         :param color: foreground color
         :param bg_color: background color
+        :param border_color: border color
         :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
         """
         if fx is not None:
@@ -59,7 +65,10 @@ class Viewport:
             self.color = color
         if bg_color is not None:
             self.bg_color = bg_color
+        if border_color is not None:
+            self.border_color = border_color
         self.margins = margins
+        self.inner_rect = sub_rect(self.rect, margins=self.margins)
         # Discard font cache in case font parameters have changed.
         self._font = None
 
@@ -72,21 +81,79 @@ class Viewport:
     def clear(self):
         if self.rect is None:
             return
-        self.display.surface.fill(self.bg_color, rect=self.rect)
+        if (self.border_color == self.bg_color
+            or (self.inner_rect.width == self.rect.width
+                and self.inner_rect.height == self.rect.height)):
+            self.display.surface.fill(self.bg_color, rect=self.rect)
+        else:
+            self.display.surface.fill(self.border_color, rect=self.rect)
+            self.display.surface.fill(self.bg_color, rect=self.inner_rect)
 
-    def text(self, text, duration: Interval = None):
+    def text(self,
+             text: str,
+             duration: Interval = None,
+             overwrite: bool = False,
+             color: Color = None):
+        """
+        Display text in viewport.
+
+        :param text: text to display
+        :param duration: optional duration before clearing
+        :param overwrite: optional boolean to disable clearing the viewport
+        :param color: optional text color
+        """
         if self.rect is None:
             return
-        self.clear()
-        text_width, text_height = self.font.size(text)
-        text_rect = sub_rect(self.rect,
-                             fleft=self.fx,
-                             ftop=self.fy,
-                             width=text_width,
-                             height=text_height,
-                             margins=self.margins)
-        text_surface = self.font.render(text, True, self.color)
+        if not overwrite:
+            self.clear()
+        while True:
+            text_width, text_height = self.font.size(text)
+            text_rect = sub_rect(self.rect,
+                                 fleft=self.fx,
+                                 ftop=self.fy,
+                                 width=text_width,
+                                 height=text_height,
+                                 margins=self.margins)
+            if text_rect.width <= self.inner_rect.width:
+                break
+            shortened_text = text[:-4] if text.endswith('...') else text[:-1]
+            if len(shortened_text) == 0:
+                break
+            text = f'{shortened_text}...'
+        if color is None:
+            color = self.color
+        text_surface = self.font.render(text, True, color)
         self.display.surface.blit(text_surface, text_rect)
+        pygame.display.update()
+        if duration is not None:
+            self.display.event_manager.register('timer', self.clear, duration, max_count=1)
+
+    def image(self,
+              path: str,
+              duration: Interval = None,
+              overwrite: bool = False):
+        """
+        Display image file in viewport.
+
+        :param path: image file path
+        :param duration: optional duration before clearing
+        :param overwrite: optional boolean to disable clearing the viewport
+        """
+        if self.rect is None:
+            return
+        if not path or not os.path.isfile(path):
+            log.error(f'Image file is missing: {path}')
+            self.text('*missing*', duration=duration, overwrite=overwrite)
+            return
+        if not overwrite:
+            self.clear()
+        image_surface = pygame.image.load(path)
+        # Supposedly speeds rendering to let surface perform conversion.
+        if path.lower().endswith('.png'):
+            image_surface = image_surface.convert_alpha()
+        else:
+            image_surface = image_surface.convert()
+        self.display.surface.blit(image_surface, self.inner_rect)
         pygame.display.update()
         if duration is not None:
             self.display.event_manager.register('timer', self.clear, duration, max_count=1)
@@ -174,13 +241,41 @@ class Viewport:
             viewports.append(self.__class__(self.display, rect))
         return viewports
 
-    def overlay(self) -> 'Viewport':
+    def overlay(self,
+                fx: Position = None,
+                fy: Position = None,
+                font_path: str = None,
+                font_size: FontSize = None,
+                color: Color = None,
+                bg_color: Color = None,
+                border_color: Color = None,
+                margins: Margins = None) -> 'Viewport':
         """
         Create overlay viewport positioned in the same screen rectangle.
 
+        Also copies or overrides viewport configuration data.
+
+        :param fx: relative horizontal position
+        :param fy: relative vertical position
+        :param font_path: font file path
+        :param font_size: font size
+        :param color: foreground color
+        :param bg_color: background color
+        :param border_color: border color
+        :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
         :return: new Viewport
         """
-        return self.__class__(self.display, self.rect)
+        overlay_viewport = self.__class__(self.display, self.rect)
+        overlay_viewport.configure(
+            fx=fx if fx is not None else self.fx,
+            fy=fy if fy is not None else self.fy,
+            font_path=font_path if font_path is not None else self.font_path,
+            font_size=font_size if font_size is not None else self.font_size,
+            color=color if color is not None else self.color,
+            bg_color=bg_color if bg_color is not None else self.bg_color,
+            border_color=color if border_color is not None else self.border_color,
+            margins=color if margins is not None else self.margins)
+        return overlay_viewport
 
     def __str__(self):
         return 'Viewport(rect={}, fx={}, fy={}, color={}, bg_color={})'.format(

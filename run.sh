@@ -1,23 +1,41 @@
-#!/bin/sh
-# shellcheck disable=SC2006 disable=SC2086 disable=SC2024 disable=SC2164
-_uid=`id -u`
-_app_dir=`dirname $0`
-cd $_app_dir
-_script=$_app_dir/rpi-clock.py
-_log_file=$_app_dir/rpi-clock.log
-_pid_file=$_app_dir/rpi-clock.pid
-if [ $_uid -eq 0 ]; then
-    test -f $_pid_file && rm -f $_pid_file
-    test -f $_log_file && rm -f $_log_file
-    touch $_pid_file $_log_file
-    chown pi:pi $_pid_file $_log_file
-    python3 $_script >> $_log_file 2>&1 &
-    echo $! >> $_pid_file
-else
-    test -f $_pid_file && sudo rm -f $_pid_file
-    test -f $_log_file && sudo rm -f $_log_file
-    touch $_log_file
-    sudo python3 $_script >> $_log_file 2>&1 &
-    echo $! > $_pid_file
-    tail -F $_log_file
-fi
+#!/bin/bash
+
+function _wait_for_ntp() {
+  echo "Checking for NTP synchronization..."
+  for idx in $(seq 10); do
+    {  timedatectl show | grep -q 'NTPSynchronized=yes'; } && return
+    echo "Waiting for NTP synchronization to complete [$idx]..."
+    sleep 2
+  done
+  echo "ERROR: Gave up waiting for NTP synchronization."
+  exit 1
+}
+
+function _run() {
+  declare app_dir
+  app_dir=$(dirname "$0")
+  declare script="$app_dir/rpi-clock.py"
+  declare log_file="$app_dir/rpi-clock.log"
+  declare pid_file="$app_dir/rpi-clock.pid"
+  declare rm_cmd=rm
+  declare python_cmd=python3
+  cd "$app_dir" || exit 1
+  if [[ $(id -u) != 0 ]]; then
+    rm_cmd="sudo rm"
+    python_cmd="sudo python3"
+  fi
+  _wait_for_ntp
+  test -f "$pid_file" && ${rm_cmd} -f "$pid_file"
+  test -f "$log_file" && ${rm_cmd} -f "$log_file"
+  touch "$pid_file" "$log_file"
+  if [[ $(id -u) == 0 ]]; then
+    chown pi:pi "$pid_file" "$log_file"
+  fi
+  { ${python_cmd} "$script"; } >>"$log_file" 2>&1 &
+  echo $! >>"$pid_file"
+  if [[ $(id -u) != 0 ]]; then
+    tail -F "$log_file"
+  fi
+}
+
+_run

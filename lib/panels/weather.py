@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from time import struct_time
 from typing import Optional
 
-from ..data_source import JSONDataSource
+from ..data_source import JSONDataSource, FileDataSource
 from ..event_manager import EventManager
 from ..panel import Panel
 from ..viewport import Viewport
@@ -49,6 +49,14 @@ FORECAST_SCHEMA = {
         ]
     }
 }
+
+ICON_SOURCE_NAME = 'weather-icon'
+ICON_CACHE_TIMEOUT = 2592000    # refresh every 30 days
+ICON_EXTENSION = '.png'
+
+
+# Special format string to display a conditions icon.
+ICON_FORMAT = '%I'
 
 
 @dataclass
@@ -121,15 +129,30 @@ class WeatherPanel(Panel):
                                                    FORECAST_SUB_URL,
                                                    frequency=FORECAST_CACHE_TIMEOUT,
                                                    user_agent=user_agent)
-        self.text = None
+        # No URL here, because download request provides entire URL.
+        self.icon_data_source = FileDataSource('weather-icon',
+                                               frequency=ICON_CACHE_TIMEOUT,
+                                               extension=ICON_EXTENSION,
+                                               user_agent=user_agent)
+        self.text: Optional[str] = None
+        self.icon_url: Optional[str] = None
+        self.icon_path: Optional[str] = None
         self.ready = False
         self._noaa_params: Optional[NOAAParams] = None
         self.do_update()
 
     def do_update(self):
+        self.icon_url = self.icon_path = None
         try:
             forecast = self.get_forecast(1)
-            self.text = forecast.format(self.weather_format)
+            if self.weather_format == ICON_FORMAT:
+                if forecast.icon:
+                    self.text = None
+                    self.icon_url = forecast.icon
+                    if self.icon_url:
+                        self.icon_path = self.icon_data_source.download(self.icon_url)
+            else:
+                self.text = forecast.format(self.weather_format)
         except WeatherError as exc:
             self.text = f'*{exc}*'
         self.ready = True
@@ -171,7 +194,13 @@ class WeatherPanel(Panel):
         raise WeatherError(f'NOAA forecast #{forecast_idx} not found')
 
     def on_display(self, viewport: Viewport):
-        viewport.text(self.text)
+        if self.icon_url:
+            if self.icon_path:
+                viewport.image(self.icon_path)
+            else:
+                viewport.text('(no icon)')
+        else:
+            viewport.text(self.text)
         self.ready = False
 
     def on_check(self) -> bool:

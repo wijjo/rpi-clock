@@ -13,6 +13,7 @@ from .viewport import Viewport
 
 @dataclass
 class ScreenBlock:
+    name: str
     viewport: Viewport
     panel: Panel = None
 
@@ -61,7 +62,7 @@ class Screen:
         self.on_create_panels()
         for block in self.blocks.values():
             block.panel.on_initialize_events(self.event_manager)
-            block.panel.on_display(block.viewport)
+        self.update_viewports()
 
     def add_viewport(self, name: str, viewport: Viewport):
         """
@@ -70,7 +71,7 @@ class Screen:
         :param name: viewport name
         :param viewport: viewport
         """
-        self.blocks[name] = ScreenBlock(viewport)
+        self.blocks[name] = ScreenBlock(name, viewport)
 
     def configure_viewport(self,
                            name: str,
@@ -80,6 +81,7 @@ class Screen:
                            font_size: FontSize = None,
                            color: Color = None,
                            bg_color: Color = None,
+                           border_color: Color = None,
                            margins: Margins = None):
         """
         Configure viewport display attributes.
@@ -91,6 +93,7 @@ class Screen:
         :param font_size: font size
         :param color: foreground color
         :param bg_color: background color
+        :param border_color: border color
         :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
         """
         font_path = self.font_manager.get_font_path(font_name)
@@ -100,6 +103,7 @@ class Screen:
                                                 font_size=font_size,
                                                 color=color,
                                                 bg_color=bg_color,
+                                                border_color=border_color,
                                                 margins=margins)
 
     def refresh(self):
@@ -107,8 +111,17 @@ class Screen:
         Refresh screen.
         """
         self.on_configure_viewports()
+        self.update_viewports()
+
+    def update_viewports(self, check: bool = False):
+        """
+        Update viewports.
+
+        :param check: check before updating if True
+        """
         for block in self.blocks.values():
-            block.panel.on_display(block.viewport)
+            if not check or block.panel.on_check():
+                block.panel.on_display(block.viewport)
 
     def on_initialize_events(self):
         """
@@ -138,9 +151,7 @@ class Screen:
         """
         Called to update panels.
         """
-        for block in self.blocks.values():
-            if block.panel.on_check():
-                block.panel.on_display(block.viewport)
+        self.update_viewports(check=True)
 
     def message(self, text: str, duration: Interval = None):
         """
@@ -151,6 +162,6 @@ class Screen:
         :param text: text message to display
         :param duration: optional duration before it gets cleared
         """
-        log.info(f'message: {text}')
+        log.info(f'Message: {text}')
         if self.message_panel is not None:
             self.message_panel.set(text, duration=duration)

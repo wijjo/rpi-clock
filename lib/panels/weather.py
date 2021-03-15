@@ -1,3 +1,22 @@
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Weather panel."""
+
 from dataclasses import dataclass
 from time import struct_time
 from typing import Optional
@@ -24,7 +43,7 @@ POINTS_SCHEMA = {
 }
 
 FORECAST_SOURCE_NAME = 'weather-forecast'
-FORECAST_CACHE_TIMEOUT = 900    # refresh every 5 minutes
+FORECAST_CACHE_TIMEOUT = 900    # refresh every 15 minutes
 # From points schema: wfo==gridId, x=gridX, and y=gridY.
 FORECAST_SUB_URL = '/gridpoints/{wfo}/{x},{y}/forecast/hourly'
 FORECAST_SCHEMA = {
@@ -51,7 +70,7 @@ FORECAST_SCHEMA = {
 }
 
 ICON_SOURCE_NAME = 'weather-icon'
-ICON_CACHE_TIMEOUT = 2592000    # refresh every 30 days
+ICON_CACHE_TIMEOUT = 2592000    # refresh icon images every 30 days
 ICON_EXTENSION = '.png'
 
 
@@ -61,6 +80,7 @@ ICON_FORMAT = '%I'
 
 @dataclass
 class NOAAParams:
+    """NOAA parameters for identifying weather source."""
     wfo: str
     x: int
     y: int
@@ -68,6 +88,8 @@ class NOAAParams:
 
 @dataclass
 class NOAAForecast:
+    """Broken-out NOAA forecast data."""
+
     start_time: struct_time
     end_time: struct_time
     is_daytime: bool
@@ -105,19 +127,41 @@ class NOAAForecast:
 
 
 class WeatherError(Exception):
+    """Weather retrieval exception used internally."""
     pass
 
 
 class WeatherPanel(Panel):
+    """NOAA weather panel."""
 
     def __init__(self,
                  latitude: float,
                  longitude: float,
                  weather_format: str,
-                 user_agent: str = None):
+                 domain: str,
+                 email: str):
+        """
+        Weather panel constructor.
+
+        Uses the NOAA web API for data. Note that the domain and email address
+        are required for identification to the NOAA API so that they can
+        associate and resolve usage issues.
+
+        The weather_format string accepts a special "%I" value to retrieve and
+        display the current conditions icon (56x56 pixels).
+
+        Local caching should prevent excessive online API hammering.
+
+        :param latitude: weather location latitude
+        :param longitude: weather location longitude
+        :param weather_format: strftime()-compatible format string
+        :param domain: domain for user agent string as ID for NOAA API
+        :param email: email for user agent string as ID for NOAA API
+        """
         self.latitude = latitude
         self.longitude = longitude
         self.weather_format = weather_format
+        user_agent = f'({domain}, {email})'
         self.points_data_source = JSONDataSource(POINTS_SOURCE_NAME,
                                                  BASE_URL,
                                                  POINTS_SUB_URL,
@@ -142,6 +186,7 @@ class WeatherPanel(Panel):
         self.do_update()
 
     def do_update(self):
+        """Called for initial and periodic updates."""
         self.icon_url = self.icon_path = None
         try:
             forecast = self.get_forecast(1)
@@ -158,10 +203,22 @@ class WeatherPanel(Panel):
         self.ready = True
 
     def on_initialize_events(self, event_manager: EventManager):
+        """
+        Register handled events.
+
+        :param event_manager: event manager
+        """
         event_manager.register('timer', self.do_update, POLL_FREQUENCY)
 
     @property
     def noaa_params(self) -> NOAAParams:
+        """
+        NOAA location parameters property.
+
+        Retrieved and cached on first use.
+
+        :return: NOAA parameters
+        """
         if self._noaa_params is None:
             points_data = self.points_data_source.download(latitude=self.latitude,
                                                            longitude=self.longitude)
@@ -173,6 +230,14 @@ class WeatherPanel(Panel):
         return self._noaa_params
 
     def get_forecast(self, forecast_idx: int) -> NOAAForecast:
+        """
+        Download weather forecast by index.
+
+        Received data is a time-sequenced series with #1 being current.
+
+        :param forecast_idx:
+        :return: forecast data
+        """
         forecast_data = self.forecast_data_source.download(wfo=self.noaa_params.wfo,
                                                            x=self.noaa_params.x,
                                                            y=self.noaa_params.y)
@@ -194,6 +259,11 @@ class WeatherPanel(Panel):
         raise WeatherError(f'NOAA forecast #{forecast_idx} not found')
 
     def on_display(self, viewport: Viewport):
+        """
+        Display the requested data in a viewport.
+
+        :param viewport: viewport for display
+        """
         if self.icon_url:
             if self.icon_path:
                 viewport.image(self.icon_path)
@@ -204,4 +274,9 @@ class WeatherPanel(Panel):
         self.ready = False
 
     def on_check(self) -> bool:
+        """
+        Check if data is ready for display.
+
+        :return: True if data is ready
+        """
         return self.ready

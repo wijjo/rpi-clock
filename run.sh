@@ -1,5 +1,38 @@
 #!/bin/sh
 
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+# This is the easiest way to run rpi-clock. It makes sure NTP has finished
+# synchronizing the time. It automatically uses sudo to run as root, as needed.
+# It creates a .pid file to make stopping it, e.g. using kill.sh, simpler. It
+# runs in the background and captures all output to the .log file.
+#
+# To enable this program at startup add something like the following line to
+# /etc/rc.local:
+#
+#    sh /home/pi/rpi-clock/run.sh
+#
+# Change the path as needed for your rpi-clock installation folder.
+#
+# If it fails to start check the text console where system messages are
+# displayed. You may see problems like NTP synchronization failures. E.g. it may
+# have given up waiting for NTP synchronization to complete.
+
 # shellcheck disable=SC2046 disable=SC2209
 
 _wait_for_ntp() {

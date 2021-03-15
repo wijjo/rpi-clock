@@ -1,3 +1,22 @@
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+"""General-purpose utility functions and classes."""
+
 import pygame
 from dataclasses import dataclass
 from typing import Optional
@@ -8,12 +27,20 @@ from .typing import Margins
 
 @dataclass
 class MarginData:
+    """Margin data for specifying PyGame rectangle border."""
+
     left: int
     top: int
     right: int
     bottom: int
 
-    def adjust_rect(self, rect: pygame.Rect):
+    def adjust_rect(self, rect: pygame.Rect) -> pygame.Rect:
+        """
+        Produce an inner rectangle based on another rectangle and margin data.
+
+        :param rect: outer rectangle
+        :return: inner rectangle
+        """
         return pygame.Rect(rect.left + self.left,
                            rect.top + self.top,
                            rect.width - (self.left + self.right),
@@ -40,21 +67,41 @@ class MarginData:
         return cls(0, 0, 0, 0)
 
     def __str__(self):
+        """
+        Human-friendlier string conversion.
+
+        :return: descriptive string with data
+        """
         return f'MarginData(left={self.left}, top={self.top},' \
                f' right={self.right}, bottom={self.bottom}'
 
 
 def sub_rect(outer_rect: pygame.Rect,
-             left=None,
-             top=None,
-             width=None,
-             height=None,
-             fleft=None,
-             ftop=None,
-             fwidth=None,
-             fheight=None,
-             margins: Margins = None):
-    """Calculate sub-rect of outer rect using x, y, w, h values between 0 and 1."""
+             left: int = None,
+             top: int = None,
+             width: int = None,
+             height: int = None,
+             fleft: float = None,
+             ftop: float = None,
+             fwidth: float = None,
+             fheight: float = None,
+             margins: Margins = None,
+             ) -> pygame.Rect:
+    """
+    Calculate sub-rect of outer rect based on various ways of specifying offsets.
+
+    :param outer_rect: outer rectangle
+    :param left: optional left pixel position
+    :param top: optional top pixel position
+    :param width: optional pixel width
+    :param height: optional pixel height
+    :param fleft: optional left position as a fractional float
+    :param ftop: optional top position as a fractional float
+    :param fwidth: optional width as a fractional float
+    :param fheight: optional height as a fractional float
+    :param margins: optional full margin specification
+    :return:
+    """
     margin_data = MarginData.from_raw(margins)
     inner_rect = margin_data.adjust_rect(outer_rect)
     if fwidth is None:
@@ -82,9 +129,4 @@ def sub_rect(outer_rect: pygame.Rect,
     else:
         top = inner_rect.top + int(ftop * (inner_rect.height - height))
     ret_rect = pygame.Rect(left, top, width, height)
-    # log.info(f'margins={margins}  '
-    #          f'margin_data={margin_data}  '
-    #          f'outer_rect={outer_rect}  '
-    #          f'inner_rect={inner_rect}  '
-    #          f'ret_rect={ret_rect}')
     return ret_rect

@@ -1,3 +1,22 @@
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Main (default) rpi-clock screen."""
+
 from lib import log
 from lib.panels.message import MessagePanel
 from lib.panels.time import TimePanel
@@ -7,12 +26,19 @@ from lib.viewport import Viewport
 
 
 class MainScreen(Screen):
+    """Main clock/calendar/weather screen."""
 
     def on_initialize_events(self):
+        """Required call-back to set up event handlers."""
         self.event_manager.register('button', self.on_button1, 1)
         self.event_manager.register('button', self.on_button2, 2)
 
     def on_create_viewports(self, outer_viewport: Viewport):
+        """
+        Required call-back to create named viewports.
+
+        :param outer_viewport: viewport that provides outer dimensions
+        """
         log.info('Create main screen viewports.')
         rows = outer_viewport.vsplit(*self.config.rows)
         self.add_viewport('time', rows[0])
@@ -29,8 +55,8 @@ class MainScreen(Screen):
         # Message overlays the weather row.
         self.add_viewport('message', rows[2])
 
-    # noinspection DuplicatedCode
     def on_configure_viewports(self):
+        """Required call-back to configure named viewports."""
         log.info('Configure main screen viewports.')
         self.configure_viewport('time',
                                 fx=self.config.panels.time.fx,
@@ -97,7 +123,7 @@ class MainScreen(Screen):
                                 margins=self.config.panels.message.margins)
 
     def on_create_panels(self):
-        user_agent = f'({self.config.domain}, {self.config.email})'
+        """Required call-back to create panels assigned to named viewports."""
         log.info('Create main screen panels.')
         self.set_panel('time',
                        TimePanel(self.config.panels.time.format,
@@ -111,22 +137,27 @@ class MainScreen(Screen):
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
                                     self.config.panels.temperature.format,
-                                    user_agent=user_agent))
+                                    self.config.domain,
+                                    self.config.email))
         self.set_panel('conditions',
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
                                     self.config.panels.conditions.format,
-                                    user_agent=user_agent))
+                                    self.config.domain,
+                                    self.config.email))
         self.set_panel('icon',
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,
                                     self.config.panels.icon.format,
-                                    user_agent=user_agent))
+                                    self.config.domain,
+                                    self.config.email))
         self.set_panel('message',
                        MessagePanel())
 
     def on_button1(self):
+        """PiTFT button #1 handler."""
         self.event_manager.send('trigger', 'screen', 'main')
 
     def on_button2(self):
+        """PiTFT button #2 handler."""
         self.message('button2', duration=5)

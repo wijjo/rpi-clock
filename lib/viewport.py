@@ -1,3 +1,22 @@
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Viewport support for screen display regions."""
+
 import os
 import pygame
 from typing import Optional, List
@@ -5,21 +24,28 @@ from typing import Optional, List
 from . import log
 from .display import Display, \
     COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND, COLOR_DEFAULT_BORDER
+from .event_manager import EventManager
 from .typing import Color, FontSize, Position, Rect, Interval, Margins
 from .utility import sub_rect
 
 
 # noinspection DuplicatedCode
 class Viewport:
+    """Viewport is a screen display region."""
 
-    def __init__(self, display: Display, rect: Optional[Rect]):
+    def __init__(self,
+                 display: Display,
+                 event_manager: EventManager,
+                 rect: Optional[Rect]):
         """
         Construct viewport.
 
         :param display: display for text, image, etc.
+        :param event_manager: event manager for setting up handlers
         :param rect: rectangle to frame displayed object (None for "null" viewport)
         """
         self.display = display
+        self.event_manager = event_manager
         self.rect = rect
         self.inner_rect = self.rect
         self.font_path: Optional[str] = None
@@ -73,12 +99,18 @@ class Viewport:
         self._font = None
 
     @property
-    def font(self):
+    def font(self) -> pygame.font.Font:
+        """
+        Viewport font property.
+
+        :return: assigned viewport font.
+        """
         if self._font is None:
             self._font = pygame.font.Font(self.font_path, self.font_size)
         return self._font
 
     def clear(self):
+        """Clear viewport based on configured background and or border colors."""
         if self.rect is None:
             return
         if (self.border_color == self.bg_color
@@ -126,7 +158,7 @@ class Viewport:
         self.display.surface.blit(text_surface, text_rect)
         pygame.display.update()
         if duration is not None:
-            self.display.event_manager.register('timer', self.clear, duration, max_count=1)
+            self.event_manager.register('timer', self.clear, duration, max_count=1)
 
     def image(self,
               path: str,
@@ -160,7 +192,7 @@ class Viewport:
         self.display.surface.blit(image_surface, image_rect)
         pygame.display.update()
         if duration is not None:
-            self.display.event_manager.register('timer', self.clear, duration, max_count=1)
+            self.event_manager.register('timer', self.clear, duration, max_count=1)
 
     def hsplit(self, *width_values: Position) -> List['Viewport']:
         """
@@ -200,7 +232,7 @@ class Viewport:
                                        width,
                                        self.rect.height)
                     consumed_width += width
-            viewports.append(self.__class__(self.display, rect))
+            viewports.append(self.__class__(self.display, self.event_manager, rect))
         return viewports
 
     def vsplit(self, *height_values: Position) -> List['Viewport']:
@@ -242,7 +274,7 @@ class Viewport:
                                        self.rect.width,
                                        height)
                     consumed_height += height
-            viewports.append(self.__class__(self.display, rect))
+            viewports.append(self.__class__(self.display, self.event_manager, rect))
         return viewports
 
     def overlay(self,
@@ -257,6 +289,9 @@ class Viewport:
         """
         Create overlay viewport positioned in the same screen rectangle.
 
+        For now this is the only way to use alternate fonts and colors in the
+        same screen location.
+
         Also copies or overrides viewport configuration data.
 
         :param fx: relative horizontal position
@@ -269,7 +304,7 @@ class Viewport:
         :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
         :return: new Viewport
         """
-        overlay_viewport = self.__class__(self.display, self.rect)
+        overlay_viewport = self.__class__(self.display, self.event_manager, self.rect)
         overlay_viewport.configure(
             fx=fx if fx is not None else self.fx,
             fy=fy if fy is not None else self.fy,
@@ -281,6 +316,11 @@ class Viewport:
             margins=color if margins is not None else self.margins)
         return overlay_viewport
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation for logging.
+
+        :return: string representing object
+        """
         return 'Viewport(rect={}, fx={}, fy={}, color={}, bg_color={})'.format(
                     self.rect, self.fx, self.fy, self.color, self.bg_color)

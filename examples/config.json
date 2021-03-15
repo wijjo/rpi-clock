@@ -1,22 +1,85 @@
 {
-  "latitude": 99.99,
-  "longitude": 99.99,
-  "user_agent": "(example.com, me@example.com)",
-  "time1_color": [220, 60, 30],
-  "time1_font_size": 144,
-  "time1_format": "%H:%M",
-  "time2_color": [130, 30, 15],
-  "time2_font_size": 72,
-  "time2_format": "%S",
-  "date_color": [30, 60, 200],
-  "date_format": "%a %b %d %Y",
-  "date_font_size": 48,
-  "weather1_color": [200, 60, 30],
-  "weather1_font_size": 28,
-  "weather1_format": "%T - %W",
-  "weather2_color": [180, 50, 25],
-  "weather2_font_size": 28,
-  "weather2_format": "%S",
-  "message_color": [120, 60, 30],
-  "message_font_size": 28
+  "latitude": 47.609456,
+  "longitude": -122.202382,
+  "domain": "example.com",
+  "email": "me@example.com",
+  "rows": [120, 60, 60],
+  "display": {
+    "device": "/dev/fb1",
+    "driver": "fbcon",
+    "left": 0,
+    "top": 0,
+    "width": 320,
+    "height": 240
+  },
+  "fonts": {
+    "time": "digitaldisplayregular-odeo",
+    "text": "ibmplexsans-text"
+  },
+  "ghost_lcd": false,
+  "update_interval": 10,
+  "bg_color": [0, 0, 40],
+  "border_color": [0, 0, 40],
+  "panels": {
+    "time": {
+      "color": [180, 150, 0],
+      "font_size": 132,
+      "format": "%H:%M",
+      "fx": 1,
+      "fy": 0.5,
+      "margins": [10, 1]
+    },
+    "date": {
+      "color": [200, 40, 200],
+      "font_size": 40,
+      "format": "%a %b %d",
+      "fx": 0,
+      "fy": 0.5,
+      "width": 260,
+      "margins": [10, 1]
+    },
+    "seconds": {
+      "color": [140, 100, 0],
+      "font_size": 40,
+      "format": "%S",
+      "fx": 0,
+      "fy": 0.5,
+      "width": 60,
+      "margins": [10, 1]
+    },
+    "temperature": {
+      "color": [220, 50, 50],
+      "font_size": 36,
+      "format": "%T",
+      "fx": 0,
+      "fy": 0.5,
+      "width": 80,
+      "margins": [10, 1, 1, 1]
+    },
+    "conditions": {
+      "color": [40, 200, 160],
+      "font_size": 18,
+      "format": "%S",
+      "fx": 0,
+      "fy": 0.5,
+      "width": 180,
+      "margins": [10, 1, 1, 1]
+    },
+    "icon": {
+      "border_color": [40, 150, 150],
+      "font_size": 12,
+      "format": "%I",
+      "fx": 0.5,
+      "fy": 0.5,
+      "width": 60,
+      "margins": [2, 2, 2, 2]
+    },
+    "message": {
+      "color": [60, 120, 30],
+      "font_size": 12,
+      "fx": 0,
+      "fy": 0.5,
+      "margins": [10, 1]
+    }
+  }
 }

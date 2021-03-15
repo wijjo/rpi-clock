@@ -1,3 +1,22 @@
+# Copyright (C) 2021, Steven Cooper
+#
+# This file is part of rpi-clock.
+#
+# Rpi-clock is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Rpi-clock is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
+
+"""A screen is a full-screen application page."""
+
 from dataclasses import dataclass
 from typing import Dict, Optional
 
@@ -19,11 +38,19 @@ class ScreenBlock:
 
 
 class Screen:
+    """Application screen."""
 
     def __init__(self,
                  config: Config,
                  event_manager: EventManager,
                  font_manager: FontManager):
+        """
+        Application screen constructor.
+
+        :param config: configuration data
+        :param event_manager: event manager for registering handled events
+        :param font_manager: font manager for access to font resources
+        """
         self.config = config
         self.event_manager = event_manager
         self.font_manager = font_manager

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-"""PiTFT button event producer."""
+"""GPIO button event producer."""
 
 from RPi import GPIO
 from typing import List, Optional
@@ -26,12 +26,11 @@ from ..event_producer import EventProducer
 
 
 class ButtonEvents(EventProducer):
-    """PiTFT button event producer."""
+    """GPIO button event producer."""
 
-    button_pins = [17, 22, 23, 27]
-
-    def __init__(self):
+    def __init__(self, button_pins: List[int]):
         """Constructor."""
+        self.button_pins = button_pins
         self.button_handlers: List[Optional[EventHandler]] = [None] * len(self.button_pins)
         log.debug('Initialize GPIO.')
         GPIO.setmode(GPIO.BCM)
@@ -43,14 +42,13 @@ class ButtonEvents(EventProducer):
         """
         Register button event handler.
 
-        Performs no validation of button_idx parameter.
-
-        :param handler:
-        :param button_idx:
-        :return:
+        :param handler: event handler
+        :param button_idx: button index, 1 to button count
         """
-        assert 0 < button_idx <= len(self.button_pins)
-        self.button_handlers[button_idx - 1] = handler
+        if 0 < button_idx <= len(self.button_pins):
+            self.button_handlers[button_idx - 1] = handler
+        else:
+            log.error(f'Unable to register event for bad button index: {button_idx}')
 
     def tick(self):
         """Polling call-back to check buttons and invoke handlers."""

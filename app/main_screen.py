@@ -30,8 +30,7 @@ class MainScreen(Screen):
 
     def on_initialize_events(self):
         """Required call-back to set up event handlers."""
-        self.event_manager.register('button', self.on_button1, 1)
-        self.event_manager.register('button', self.on_button2, 2)
+        pass
 
     def on_create_viewports(self, outer_viewport: Viewport):
         """
@@ -153,11 +152,3 @@ class MainScreen(Screen):
                                     self.config.email))
         self.set_panel('message',
                        MessagePanel())
-
-    def on_button1(self):
-        """PiTFT button #1 handler."""
-        self.event_manager.send('trigger', 'screen', 'main')
-
-    def on_button2(self):
-        """PiTFT button #2 handler."""
-        self.message('button2', duration=5)

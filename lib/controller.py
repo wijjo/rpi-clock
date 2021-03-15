@@ -37,7 +37,7 @@ from .screen import Screen
 from .screen_manager import ScreenManager
 from .viewport import Viewport
 
-POLL_INTERVAL = 0.1
+DEFAULT_POLL_INTERVAL = 0.1
 
 
 class Controller:
@@ -50,8 +50,9 @@ class Controller:
         base_folder = os.path.dirname(config_path)
         self.instances += 1
         self.config = Config(config_path)
+        self.poll_interval = self.config.poll_interval or DEFAULT_POLL_INTERVAL
         self.event_manager = EventManager()
-        self.event_manager.add_producer('button', ButtonEvents())
+        self.event_manager.add_producer('button', ButtonEvents(self.config.gpio.button_pins))
         self.event_manager.add_producer('timer', TimerEvents())
         self.event_manager.add_producer('tick', TickEvents())
         self.event_manager.add_producer('trigger', TriggerEvents())
@@ -59,9 +60,27 @@ class Controller:
         self.event_manager.register('timer', self.update, self.config.update_interval,
                                     permanent=True)
         self.event_manager.register('trigger', self.activate_screen, 'screen', permanent=True)
-        # TODO: Don't hard-code these events.
-        self.event_manager.register('button', self.on_button3, 3, permanent=True)
-        self.event_manager.register('button', self.on_button4, 4, permanent=True)
+        # Supported buttons actions are "quit", "poweroff", "screen1", and "screen2".
+        if self.config.buttons.quit:
+            self.event_manager.register('button',
+                                        self.on_quit,
+                                        self.config.buttons.quit,
+                                        permanent=True)
+        if self.config.buttons.poweroff:
+            self.event_manager.register('button',
+                                        self.on_poweroff,
+                                        self.config.buttons.poweroff,
+                                        permanent=True)
+        if self.config.buttons.screen1:
+            self.event_manager.register('button',
+                                        self.on_screen1,
+                                        self.config.buttons.screen1,
+                                        permanent=True)
+        if self.config.buttons.screen2:
+            self.event_manager.register('button',
+                                        self.on_screen2,
+                                        self.config.buttons.screen2,
+                                        permanent=True)
         self.font_manager = FontManager(os.path.join(base_folder, 'fonts'))
         self.screen_manager = ScreenManager(self.event_manager)
         self.display = Display(self.config.display.left,
@@ -106,25 +125,25 @@ class Controller:
         """
         self.screen_manager.show_screen(screen_name, self.outer_viewport)
 
-    def on_button3(self):
-        """
-        Handle PiTFT button 3 by exiting application.
-
-        TODO: Don't hard-code these events.
-        """
+    def on_quit(self):
+        """Handle button by quitting application."""
         self.screen_manager.active_screen.message('Exiting...')
         sleep(2)
         sys.exit(0)
 
-    def on_button4(self):
-        """
-        Handle PiTFT button 3 by shutting down the Raspberry Pi.
-
-        TODO: Don't hard-code these events.
-        """
+    def on_poweroff(self):
+        """Handle button by powering off the Raspberry Pi."""
         self.screen_manager.active_screen.message('Powering off...')
         sleep(2)
         os.execlp('sudo', 'sudo', 'poweroff')
+
+    def on_screen1(self):
+        """Handle button by switching to screen #1."""
+        self.event_manager.send('trigger', 'screen', 'main')
+
+    def on_screen2(self):
+        """Handle button by switching to screen #1."""
+        self.event_manager.send('trigger', 'screen', 'screen2')
 
     def cleanup(self):
         """
@@ -145,4 +164,4 @@ class Controller:
         self.screen_manager.show_screen(initial_screen_name, self.outer_viewport)
         while True:
             self.event_manager.tick()
-            sleep(POLL_INTERVAL)
+            sleep(self.poll_interval)

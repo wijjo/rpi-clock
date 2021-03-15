@@ -38,8 +38,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.time,
                                 font_size=self.config.panels.time.font_size,
                                 color=self.config.panels.time.color,
-                                bg_color=self.config.panels.time.bg_color,
-                                border_color=self.config.panels.time.border_color,
+                                bg_color=self.config.panels.time.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.time.border_color or self.config.border_color,
                                 margins=self.config.panels.time.margins)
         self.configure_viewport('date',
                                 fx=self.config.panels.date.fx,
@@ -47,8 +47,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.text,
                                 font_size=self.config.panels.date.font_size,
                                 color=self.config.panels.date.color,
-                                bg_color=self.config.panels.date.bg_color,
-                                border_color=self.config.panels.date.border_color,
+                                bg_color=self.config.panels.date.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.date.border_color or self.config.border_color,
                                 margins=self.config.panels.date.margins)
         self.configure_viewport('seconds',
                                 fx=self.config.panels.seconds.fx,
@@ -56,8 +56,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.time,
                                 font_size=self.config.panels.seconds.font_size,
                                 color=self.config.panels.seconds.color,
-                                bg_color=self.config.panels.seconds.bg_color,
-                                border_color=self.config.panels.seconds.border_color,
+                                bg_color=self.config.panels.seconds.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.seconds.border_color or self.config.border_color,
                                 margins=self.config.panels.seconds.margins)
         self.configure_viewport('temperature',
                                 fx=self.config.panels.temperature.fx,
@@ -65,8 +65,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.text,
                                 font_size=self.config.panels.temperature.font_size,
                                 color=self.config.panels.temperature.color,
-                                bg_color=self.config.panels.temperature.bg_color,
-                                border_color=self.config.panels.temperature.border_color,
+                                bg_color=self.config.panels.temperature.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.temperature.border_color or self.config.border_color,
                                 margins=self.config.panels.temperature.margins)
         self.configure_viewport('conditions',
                                 fx=self.config.panels.conditions.fx,
@@ -74,8 +74,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.text,
                                 font_size=self.config.panels.conditions.font_size,
                                 color=self.config.panels.conditions.color,
-                                bg_color=self.config.panels.conditions.bg_color,
-                                border_color=self.config.panels.conditions.border_color,
+                                bg_color=self.config.panels.conditions.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.conditions.border_color or self.config.border_color,
                                 margins=self.config.panels.conditions.margins)
         self.configure_viewport('icon',
                                 fx=self.config.panels.icon.fx,
@@ -83,8 +83,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.text,
                                 font_size=self.config.panels.icon.font_size,
                                 color=self.config.panels.icon.color,
-                                bg_color=self.config.panels.icon.bg_color,
-                                border_color=self.config.panels.icon.border_color,
+                                bg_color=self.config.panels.icon.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.icon.border_color or self.config.border_color,
                                 margins=self.config.panels.icon.margins)
         self.configure_viewport('message',
                                 fx=self.config.panels.message.fx,
@@ -92,8 +92,8 @@ class MainScreen(Screen):
                                 font_name=self.config.fonts.text,
                                 font_size=self.config.panels.message.font_size,
                                 color=self.config.panels.message.color,
-                                bg_color=self.config.panels.message.bg_color,
-                                border_color=self.config.panels.message.border_color,
+                                bg_color=self.config.panels.message.bg_color or self.config.bg_color,
+                                border_color=self.config.panels.message.border_color or self.config.border_color,
                                 margins=self.config.panels.message.margins)
 
     def on_create_panels(self):

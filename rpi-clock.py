@@ -25,7 +25,6 @@ if os.getuid() != 0:
     sys.stderr.write('ERROR: This script must be run as root, e.g. using sudo.\n')
     sys.exit(1)
 
-from lib import log
 from lib.controller import Controller
 
 from app.main_screen import MainScreen
@@ -33,21 +32,7 @@ from app.main_screen import MainScreen
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
-def main():
-    """Main creates controller with a screen and then starts the controller."""
-    log.info(f'Running rpi-clock as PID {os.getpid()}.')
-    log.info('Create controller.')
-    controller = Controller(CONFIG_PATH)
-    log.info('Create main screen.')
-    controller.add_screen('main', MainScreen)
-    log.info('Start main loop.')
-    controller.main('main')
-
-
 if __name__ == '__main__':
-    # Handle Control-C exception cleanly.
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.stderr.write(os.linesep)
-        sys.exit(2)
+    controller = Controller(CONFIG_PATH)
+    controller.add_screen('main', MainScreen)
+    controller.main('main')

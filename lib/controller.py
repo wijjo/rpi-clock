@@ -47,6 +47,7 @@ class Controller:
 
     def __init__(self, config_path: str):
         assert self.instances == 0
+        log.info(f'Create controller (PID={os.getpid()}).')
         base_folder = os.path.dirname(config_path)
         self.instances += 1
         self.config = Config(config_path)
@@ -97,33 +98,36 @@ class Controller:
             sys.exit(signum)
 
         signal.signal(signal.SIGTERM, _signal_handler)
+        signal.signal(signal.SIGINT, _signal_handler)
 
     def add_screen(self, name, screen_class: Type[Screen]):
         """
-        Add a named screen.
+        Add named screen.
 
         :param name: screen name
         :param screen_class: screen class (not instance)
         """
+        log.info(f'Add screen "{name}".')
         self.screen_manager.add_screen(name, screen_class(self.config,
                                                           self.event_manager,
                                                           self.font_manager))
 
     def update(self):
         """
-        Called on a timer to check for configuration updates.
+        Called periodically to check for configuration updates.
         """
         if self.config.update():
             log.info('Reloaded configuration.')
             self.screen_manager.force_refresh()
 
-    def activate_screen(self, screen_name: str):
+    def activate_screen(self, name: str):
         """
-        Activate a named screen.
+        Activate named screen.
 
-        :param screen_name: screen name
+        :param name: screen name
         """
-        self.screen_manager.show_screen(screen_name, self.outer_viewport)
+        log.info(f'Activate screen "{name}".')
+        self.screen_manager.show_screen(name, self.outer_viewport)
 
     def on_quit(self):
         """Handle button by quitting application."""
@@ -150,7 +154,6 @@ class Controller:
         Perform clean shutdown of device support, including the display.
         :return:
         """
-        log.info('Cleaning up...')
         self.display.shut_down()
 
     def main(self, initial_screen_name):
@@ -161,7 +164,13 @@ class Controller:
 
         :param initial_screen_name: initial active screen name
         """
-        self.screen_manager.show_screen(initial_screen_name, self.outer_viewport)
-        while True:
-            self.event_manager.tick()
-            sleep(self.poll_interval)
+        # Handle Control-C exception cleanly.
+        try:
+            self.screen_manager.show_screen(initial_screen_name, self.outer_viewport)
+            log.info('Start main loop.')
+            while True:
+                self.event_manager.tick()
+                sleep(self.poll_interval)
+        except KeyboardInterrupt:
+            sys.stderr.write(os.linesep)
+            sys.exit(2)

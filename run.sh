@@ -64,11 +64,10 @@ _run() {
   touch "$pid_file" "$log_file"
   if [ $(id -u) -eq 0 ]; then
     chown pi:pi "$pid_file" "$log_file"
-  fi
-  { ${python_cmd} "$script"; } >>"$log_file" 2>&1 &
-  echo $! >>"$pid_file"
-  if [ $(id -u) -ne 0 ]; then
-    tail -F "$log_file"
+    { ${python_cmd} "$script"; } >> "$log_file" 2>&1 &
+    echo $! >>"$pid_file"
+  else
+    { ${python_cmd} "$script"; } | tee -a "$log_file" 2>&1
   fi
 }
 

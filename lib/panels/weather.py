@@ -18,7 +18,6 @@
 """Weather panel."""
 
 from dataclasses import dataclass
-from time import struct_time
 from typing import Optional
 
 from ..data_source import JSONDataSource, FileDataSource
@@ -42,30 +41,25 @@ POINTS_SCHEMA = {
     }
 }
 
-FORECAST_SOURCE_NAME = 'weather-forecast'
-FORECAST_CACHE_TIMEOUT = 900    # refresh every 15 minutes
-# From points schema: wfo==gridId, x=gridX, and y=gridY.
-FORECAST_SUB_URL = '/gridpoints/{wfo}/{x},{y}/forecast/hourly'
-FORECAST_SCHEMA = {
+STATIONS_SOURCE_NAME = 'weather-stations'
+STATIONS_CACHE_TIMEOUT = 900    # refresh every 15 minutes
+STATIONS_SUB_URL = '/gridpoints/{wfo}/{x},{y}/stations'
+STATIONS_SCHEMA = {
+    'observationStations': []
+}
+
+OBSERVATIONS_SOURCE_NAME = 'weather-observations'
+OBSERVATIONS_CACHE_TIMEOUT = 900    # refresh every 15 minutes
+OBSERVATIONS_SUB_URL = '/stations/{station}/observations/latest'
+OBSERVATIONS_SCHEMA = {
     'properties': {
-        'updateTime': str,
-        'periods': [
-            {
-                'number': int,
-                'name': str,
-                'startTime': str,
-                'endTime': str,
-                'isDaytime': bool,
-                'temperature': int,
-                'temperatureUnit': str,
-                'temperatureTrend': Optional[str],
-                'windSpeed': str,
-                'windDirection': str,
-                'icon': str,
-                'shortForecast': str,
-                'detailedForecast': str
-            }
-        ]
+        'timestamp': str,
+        'textDescription': str,
+        'temperature': {
+            'value': float,
+            'unitCode': str,
+        },
+        'icon': str,
     }
 }
 
@@ -84,45 +78,36 @@ class NOAAParams:
     wfo: str
     x: int
     y: int
+    station: str
 
 
 @dataclass
-class NOAAForecast:
-    """Broken-out NOAA forecast data."""
+class NOAAObservations:
+    """Broken-out NOAA observation data."""
 
-    start_time: struct_time
-    end_time: struct_time
-    is_daytime: bool
-    temperature: int
-    temperature_unit: str
-    trend: str
-    wind_speed: str
-    wind_direction: str
+    timestamp: str
+    description: str
+    temperature: str
     icon: str
-    short_forecast: str
-    detailed_forecast: str
 
     def format(self, template: str) -> str:
         """
         strftime-like formatting
 
+        %S: timestamp
         %T: temperature
-        %W: wind
-        %S: short forecast
-        %D: detailed forecast
+        %D: description
 
         :param template: template string
         :return: formatted string
         """
         text = template
-        if '%T' in text:
-            text = text.replace('%T', f'{self.temperature}\u00b0')
-        if '%W' in text:
-            text = text.replace('%W', f'{self.wind_speed} {self.wind_direction}')
         if '%S' in text:
-            text = text.replace('%S', self.short_forecast)
+            text = text.replace('%S', self.timestamp)
+        if '%T' in text:
+            text = text.replace('%T', self.temperature)
         if '%D' in text:
-            text = text.replace('%S', self.detailed_forecast)
+            text = text.replace('%D', self.description)
         return text
 
 
@@ -139,7 +124,8 @@ class WeatherPanel(Panel):
                  longitude: float,
                  weather_format: str,
                  domain: str,
-                 email: str):
+                 email: str,
+                 metric: bool = False):
         """
         Weather panel constructor.
 
@@ -157,10 +143,12 @@ class WeatherPanel(Panel):
         :param weather_format: strftime()-compatible format string
         :param domain: domain for user agent string as ID for NOAA API
         :param email: email for user agent string as ID for NOAA API
+        :param metric: use metric (Celsius) units instead of Fahrenheit
         """
         self.latitude = latitude
         self.longitude = longitude
         self.weather_format = weather_format
+        self.metric = metric
         user_agent = f'({domain}, {email})'
         self.points_data_source = JSONDataSource(POINTS_SOURCE_NAME,
                                                  BASE_URL,
@@ -168,11 +156,16 @@ class WeatherPanel(Panel):
                                                  frequency=POINTS_CACHE_TIMEOUT,
                                                  schema=POINTS_SCHEMA,
                                                  user_agent=user_agent)
-        self.forecast_data_source = JSONDataSource('weather-forecast',
+        self.stations_data_source = JSONDataSource(STATIONS_SOURCE_NAME,
                                                    BASE_URL,
-                                                   FORECAST_SUB_URL,
-                                                   frequency=FORECAST_CACHE_TIMEOUT,
+                                                   STATIONS_SUB_URL,
+                                                   frequency=STATIONS_CACHE_TIMEOUT,
                                                    user_agent=user_agent)
+        self.observations_data_source = JSONDataSource(OBSERVATIONS_SOURCE_NAME,
+                                                       BASE_URL,
+                                                       OBSERVATIONS_SUB_URL,
+                                                       frequency=OBSERVATIONS_CACHE_TIMEOUT,
+                                                       user_agent=user_agent)
         # No URL here, because download request provides entire URL.
         self.icon_data_source = FileDataSource('weather-icon',
                                                frequency=ICON_CACHE_TIMEOUT,
@@ -189,15 +182,15 @@ class WeatherPanel(Panel):
         """Called for initial and periodic updates."""
         self.icon_url = self.icon_path = None
         try:
-            forecast = self.get_forecast(1)
+            observations = self.get_latest_observations()
             if self.weather_format == ICON_FORMAT:
-                if forecast.icon:
+                if observations.icon:
                     self.text = None
-                    self.icon_url = forecast.icon
+                    self.icon_url = observations.icon
                     if self.icon_url:
                         self.icon_path = self.icon_data_source.download(self.icon_url)
             else:
-                self.text = forecast.format(self.weather_format)
+                self.text = observations.format(self.weather_format)
         except WeatherError as exc:
             self.text = f'*{exc}*'
         self.ready = True
@@ -220,43 +213,49 @@ class WeatherPanel(Panel):
         :return: NOAA parameters
         """
         if self._noaa_params is None:
+            # Need grid points data in order to get local stations.
             points_data = self.points_data_source.download(latitude=self.latitude,
                                                            longitude=self.longitude)
             if points_data is None:
                 raise WeatherError('NOAA geo data is unavailable')
-            self._noaa_params = NOAAParams(points_data['properties']['gridId'],
-                                           points_data['properties']['gridX'],
-                                           points_data['properties']['gridY'])
+            wfo = points_data['properties']['gridId']
+            x = points_data['properties']['gridX']
+            y = points_data['properties']['gridY']
+            # Get local stations.
+            stations_data = self.stations_data_source.download(wfo=wfo, x=x, y=y)
+            # noinspection PyBroadException
+            try:
+                stations = [url.split('/')[-1] for url in stations_data['observationStations']]
+            except Exception as exc:
+                raise WeatherError(f'Bad or unexpected NOAA "observationStations" data: {exc}')
+            if not stations:
+                raise WeatherError('No weather stations found.')
+            self._noaa_params = NOAAParams(wfo, x, y, stations[0])
         return self._noaa_params
 
-    def get_forecast(self, forecast_idx: int) -> NOAAForecast:
+    def get_latest_observations(self) -> NOAAObservations:
         """
-        Download weather forecast by index.
+        Download latest weather observations.
 
-        Received data is a time-sequenced series with #1 being current.
-
-        :param forecast_idx:
-        :return: forecast data
+        :return: observations data
         """
-        forecast_data = self.forecast_data_source.download(wfo=self.noaa_params.wfo,
-                                                           x=self.noaa_params.x,
-                                                           y=self.noaa_params.y)
-        if forecast_data is None:
-            raise WeatherError('NOAA forecast is unavailable')
-        for period_data in forecast_data['properties']['periods']:
-            if period_data['number'] == forecast_idx:
-                return NOAAForecast(period_data['startTime'],
-                                    period_data['endTime'],
-                                    period_data['isDaytime'],
-                                    period_data['temperature'],
-                                    period_data['temperatureUnit'],
-                                    period_data['temperatureTrend'],
-                                    period_data['windSpeed'],
-                                    period_data['windDirection'],
-                                    period_data['icon'],
-                                    period_data['shortForecast'],
-                                    period_data['detailedForecast'])
-        raise WeatherError(f'NOAA forecast #{forecast_idx} not found')
+        observations_data = self.observations_data_source.download(
+            station=self.noaa_params.station)
+        if observations_data is None:
+            raise WeatherError('NOAA latest observations are unavailable')
+        timestamp = observations_data['properties']['timestamp']
+        description = observations_data['properties']['textDescription']
+        temperature_data = observations_data['properties']['temperature']
+        temperature_value = temperature_data['value']
+        if temperature_data['unitCode'] == 'unit:degC':
+            if not self.metric:
+                temperature_value = temperature_value * 1.8 + 32
+        else:
+            if self.metric:
+                temperature_value = (temperature_value - 32) / 1.8
+        icon = observations_data['properties']['icon']
+        temperature = f'{int(temperature_value)}\u00b0'
+        return NOAAObservations(timestamp, description, temperature, icon)
 
     def on_display(self, viewport: Viewport):
         """

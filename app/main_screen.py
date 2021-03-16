@@ -137,7 +137,8 @@ class MainScreen(Screen):
                                     self.config.longitude,
                                     self.config.panels.temperature.format,
                                     self.config.domain,
-                                    self.config.email))
+                                    self.config.email,
+                                    self.config.metric))
         self.set_panel('conditions',
                        WeatherPanel(self.config.latitude,
                                     self.config.longitude,

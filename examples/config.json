@@ -1,9 +1,15 @@
 {
-  "latitude": 47.609456,
-  "longitude": -122.202382,
+  "latitude": 88.88,
+  "longitude": -88.88,
   "domain": "example.com",
-  "email": "me@example.com",
+  "email": "steve@example.com",
   "rows": [120, 60, 60],
+  "ghost_lcd": false,
+  "update_interval": 10,
+  "bg_color": [0, 0, 40],
+  "border_color": [0, 0, 40],
+  "poll_interval": 0.1,
+
   "display": {
     "device": "/dev/fb1",
     "driver": "fbcon",
@@ -12,15 +18,23 @@
     "width": 320,
     "height": 240
   },
+
   "fonts": {
     "time": "digitaldisplayregular-odeo",
     "text": "ibmplexsans-text"
   },
-  "ghost_lcd": false,
-  "update_interval": 10,
-  "bg_color": [0, 0, 40],
-  "border_color": [0, 0, 40],
+
+  "gpio": {
+    "button_pins": [17, 22, 23, 27]
+  },
+
+  "buttons": {
+    "quit": 3,
+    "poweroff": 4
+  },
+
   "panels": {
+
     "time": {
       "color": [180, 150, 0],
       "font_size": 132,
@@ -29,6 +43,7 @@
       "fy": 0.5,
       "margins": [10, 1]
     },
+
     "date": {
       "color": [200, 40, 200],
       "font_size": 40,
@@ -38,6 +53,7 @@
       "width": 260,
       "margins": [10, 1]
     },
+
     "seconds": {
       "color": [140, 100, 0],
       "font_size": 40,
@@ -47,6 +63,7 @@
       "width": 60,
       "margins": [10, 1]
     },
+
     "temperature": {
       "color": [220, 50, 50],
       "font_size": 36,
@@ -54,17 +71,20 @@
       "fx": 0,
       "fy": 0.5,
       "width": 80,
-      "margins": [10, 1, 1, 1]
+      "margins": [10, 1, 1, 1],
+      "metric": false
     },
+
     "conditions": {
       "color": [40, 200, 160],
       "font_size": 18,
-      "format": "%S",
+      "format": "%D",
       "fx": 0,
       "fy": 0.5,
       "width": 180,
       "margins": [10, 1, 1, 1]
     },
+
     "icon": {
       "border_color": [40, 150, 150],
       "font_size": 12,
@@ -74,6 +94,7 @@
       "width": 60,
       "margins": [2, 2, 2, 2]
     },
+
     "message": {
       "color": [60, 120, 30],
       "font_size": 12,
@@ -81,5 +102,6 @@
       "fy": 0.5,
       "margins": [10, 1]
     }
+
   }
 }

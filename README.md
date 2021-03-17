@@ -1,10 +1,13 @@
 # rpi-clock
 
-A simple clock for Raspberry Pi and Adafruit PiTFT display
+A simple clock for Raspberry Pi and Adafruit PiTFT display and buttons.
 
 It is designed as a "batteries-included" kit to make it easy to build Raspberry
 Pi status monitors, including clocks. It works with an Adafruit PiTFT display,
 but should be easily adapted to others, and also to other GPIO input devices.
+
+Please note that it is not limited to the PiTFT as a framebuffer device. Any
+similar device should be configurable. It just has not been tested.
 
 It is largely configuration data-driven. See examples/config.json.
 

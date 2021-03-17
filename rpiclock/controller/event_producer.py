@@ -17,7 +17,7 @@
 
 """Event producer base class."""
 
-from .event_handler import EventHandler
+from rpiclock.controller.event_handler import EventHandler
 
 
 class EventProducer:

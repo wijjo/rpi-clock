@@ -20,11 +20,11 @@
 from time import localtime, strftime
 from typing import Optional
 
-from .. import log
-from ..display import COLOR_GHOST_TEXT
-from ..event_manager import EventManager
-from ..panel import Panel
-from ..viewport import Viewport
+from rpiclock import log
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.model.panel import Panel
+from rpiclock.view.display import COLOR_GHOST_TEXT
+from rpiclock.view.viewport import Viewport
 
 
 class TimePanel(Panel):

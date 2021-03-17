@@ -20,11 +20,11 @@
 from time import time
 from typing import List
 
-from .. import log
-from ..event_handler import EventHandler
-from ..event_producer import EventProducer
-from ..timer import Timer
-from ..typing import Interval
+from rpiclock import log
+from rpiclock.controller.event_handler import EventHandler
+from rpiclock.controller.event_producer import EventProducer
+from rpiclock.controller.timer import Timer
+from rpiclock.typing import Interval
 
 
 class TimerEvents(EventProducer):

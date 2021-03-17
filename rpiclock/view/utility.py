@@ -21,8 +21,8 @@ import pygame
 from dataclasses import dataclass
 from typing import Optional
 
-from . import log
-from .typing import Margins
+from rpiclock import log
+from rpiclock.typing import Margins
 
 
 @dataclass

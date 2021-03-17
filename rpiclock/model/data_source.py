@@ -26,8 +26,8 @@ from urllib.parse import quote
 from urllib.request import urlopen, Request
 from typing import Dict, List, Optional, Union, Any
 
-from . import log
-from .typing import Interval
+from rpiclock import log
+from rpiclock.typing import Interval
 
 Schema = Union[Dict[str, Union[type, 'Schema']], List['Schema']]
 

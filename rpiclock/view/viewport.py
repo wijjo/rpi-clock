@@ -21,12 +21,12 @@ import os
 import pygame
 from typing import Optional, List
 
-from . import log
-from .display import Display, \
+from rpiclock import log
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.view.display import Display, \
     COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND, COLOR_DEFAULT_BORDER
-from .event_manager import EventManager
-from .typing import Color, FontSize, Position, Rect, Interval, Margins
-from .utility import sub_rect
+from rpiclock.typing import Color, FontSize, Position, Rect, Interval, Margins
+from rpiclock.view.utility import sub_rect
 
 
 # noinspection DuplicatedCode

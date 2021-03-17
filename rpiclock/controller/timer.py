@@ -20,7 +20,7 @@
 from time import time
 from typing import Callable
 
-from .typing import Interval
+from rpiclock.typing import Interval
 
 
 class Timer:

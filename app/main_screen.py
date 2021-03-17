@@ -17,12 +17,12 @@
 
 """Main (default) rpi-clock screen."""
 
-from lib import log
-from lib.panels.message import MessagePanel
-from lib.panels.time import TimePanel
-from lib.panels.weather import WeatherPanel
-from lib.screen import Screen
-from lib.viewport import Viewport
+from rpiclock import log
+from rpiclock.panels.message import MessagePanel
+from rpiclock.panels.time import TimePanel
+from rpiclock.panels.weather import WeatherPanel
+from rpiclock.view.screen import Screen
+from rpiclock.view.viewport import Viewport
 
 
 class MainScreen(Screen):

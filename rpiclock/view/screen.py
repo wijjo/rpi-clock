@@ -20,14 +20,14 @@
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from . import log
-from .config import Config
-from .event_manager import EventManager
-from .font_manager import FontManager
-from .panel import Panel
-from .panels.message import MessagePanel
-from .typing import Interval, Position, FontSize, Color, Margins
-from .viewport import Viewport
+from rpiclock import log
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.model.config import Config
+from rpiclock.model.panel import Panel
+from rpiclock.panels.message import MessagePanel
+from rpiclock.typing import Interval, Position, FontSize, Color, Margins
+from rpiclock.view.font_manager import FontManager
+from rpiclock.view.viewport import Viewport
 
 
 @dataclass

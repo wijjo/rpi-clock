@@ -17,8 +17,8 @@
 
 """Display panel base class."""
 
-from .event_manager import EventManager
-from .viewport import Viewport
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.view.viewport import Viewport
 
 
 class Panel:

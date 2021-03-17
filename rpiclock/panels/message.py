@@ -19,10 +19,10 @@
 
 from typing import Optional
 
-from ..event_manager import EventManager
-from ..panel import Panel
-from ..typing import Interval
-from ..viewport import Viewport
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.model.panel import Panel
+from rpiclock.typing import Interval
+from rpiclock.view.viewport import Viewport
 
 
 class MessagePanel(Panel):

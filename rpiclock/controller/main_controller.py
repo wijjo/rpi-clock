@@ -23,24 +23,26 @@ import signal
 import sys
 from time import sleep
 from typing import Type
+print(sys.path)
 
-from . import log
-from .config import Config
-from .display import Display
+from rpiclock import log
+from rpiclock.events.button import ButtonEvents
+from rpiclock.events.timer import TimerEvents
+from rpiclock.events.tick import TickEvents
+from rpiclock.events.trigger import TriggerEvents
+from rpiclock.model.config import Config
+from rpiclock.view.display import Display
+from rpiclock.view.font_manager import FontManager
+from rpiclock.view.screen import Screen
+from rpiclock.view.screen_manager import ScreenManager
+from rpiclock.view.viewport import Viewport
+
 from .event_manager import EventManager
-from .events.button import ButtonEvents
-from .events.timer import TimerEvents
-from .events.tick import TickEvents
-from .events.trigger import TriggerEvents
-from .font_manager import FontManager
-from .screen import Screen
-from .screen_manager import ScreenManager
-from .viewport import Viewport
 
 DEFAULT_POLL_INTERVAL = 0.1
 
 
-class Controller:
+class MainController:
     """The controller coordinates high level configuration, events, display, and lifecycle."""
 
     instances = 0

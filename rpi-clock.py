@@ -25,7 +25,7 @@ if os.getuid() != 0:
     sys.stderr.write('ERROR: This script must be run as root, e.g. using sudo.\n')
     sys.exit(1)
 
-from lib.controller import Controller
+from rpiclock.controller.main_controller import MainController
 
 from app.main_screen import MainScreen
 
@@ -33,6 +33,6 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
 
 if __name__ == '__main__':
-    controller = Controller(CONFIG_PATH)
+    controller = MainController(CONFIG_PATH)
     controller.add_screen('main', MainScreen)
     controller.main('main')

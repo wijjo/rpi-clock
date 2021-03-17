@@ -19,9 +19,9 @@
 
 from typing import List, Callable
 
-from .. import log
-from ..event_handler import EventHandler
-from ..event_producer import EventProducer
+from rpiclock import log
+from rpiclock.controller.event_handler import EventHandler
+from rpiclock.controller.event_producer import EventProducer
 
 
 class TickEvents(EventProducer):

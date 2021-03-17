@@ -19,11 +19,11 @@
 
 from typing import Optional, Dict
 
-from . import log
-from .event_manager import EventManager
-from .panel import Panel
-from .screen import Screen
-from .viewport import Viewport
+from rpiclock import log
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.model.panel import Panel
+from rpiclock.view.screen import Screen
+from rpiclock.view.viewport import Viewport
 
 
 class ScreenPanel:

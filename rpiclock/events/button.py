@@ -20,9 +20,9 @@
 from RPi import GPIO
 from typing import List, Optional
 
-from lib import log
-from ..event_handler import EventHandler
-from ..event_producer import EventProducer
+from rpiclock import log
+from rpiclock.controller.event_handler import EventHandler
+from rpiclock.controller.event_producer import EventProducer
 
 
 class ButtonEvents(EventProducer):

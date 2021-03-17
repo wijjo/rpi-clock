@@ -20,10 +20,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from ..data_source import JSONDataSource, FileDataSource
-from ..event_manager import EventManager
-from ..panel import Panel
-from ..viewport import Viewport
+from rpiclock.controller.event_manager import EventManager
+from rpiclock.model.data_source import JSONDataSource, FileDataSource
+from rpiclock.model.panel import Panel
+from rpiclock.view.viewport import Viewport
 
 # It's okay to poll more often, because the data source is cached.
 POLL_FREQUENCY = 60

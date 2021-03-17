@@ -22,16 +22,67 @@ It also includes a set of free fonts to get you started with text display.
 These instructions will probably need elaboration, but for now it is the best-
 recollection of what needs to happen to take advantage of this project.
 
+## Clock features (out of the box)
+
+* Large digital time display with seconds.
+* Periodically-updated NOAA weather data, including temperature and conditions text/image.
+* PiTFT button 3 shuts quits application.
+* Font/color/position customization in config.json.
+
+## Development toolkit features
+
+### Source code
+
+* Fully-typed Python 3 code that 100% passes PyCharm code inspection.
+* Fully-documented public classes, functions, and methods.
+* Sample configuration file.
+* Limited, but useful free font resource library.
+* No external dependencies beyond Python 3, PyGame, and framebuffer/GPIO device support.
+* Simple management scripts (run.sh/kill.sh/tail.sh).
+  
+### Model/view/controller (MVC) architecture
+
+Provides the following components:
+
+#### Model: data sources
+
+Configurable data sources support JSON and file downloads with automatic caching
+and expiration timing.
+
+#### View: viewports and screens
+
+Viewports are logical display regions with assigned fonts, colors, and margins.
+
+Screens are logical full-screen pages with their own assigned viewports.
+
+#### Controller: panels, events, and controller
+
+Panels are assigned to viewports. They pull in external data and format screen output.
+
+Included panels support text, time, and weather display in various formats.
+
+Events are implemented as producers and handlers. Producers map external triggers, 
+like time and hardware button events, to logical events. Logical events invoke 
+handler functions.
+
+Included event producers support GPIO button, tick, timer, and programmatic trigger events.
+
+There is a single controller that provides the main loop and initializes and manages
+viewports, panels, and events.
+
 ## Licensing
 
-For now this uses a GPL license. See COPYING. At a high level it makes the 
-source code freely available, but only if the source code remains open. The 
-author is willing to consider alternatives if there is a demand.
+For now this uses a GPL license. At a high level it makes the source code freely
+available, but only if the source code remains open. The author is willing to consider
+alternatives if there is a demand.
 
-**The loose statement above should not be interpreted as the binding license 
-terms. Please read the license text (in COPYING) itself.**
+**The above loose statement should not be interpreted as binding license 
+terms. Please read the license text itself (in COPYING).**
 
 # Setup
+
+These are recorded from memory, and may be incomplete. It does cover most of what
+needs to happen.
 
 ## Basic development requirements.
 

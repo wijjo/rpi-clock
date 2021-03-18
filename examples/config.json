@@ -2,7 +2,7 @@
   "latitude": 88.88,
   "longitude": -88.88,
   "domain": "example.com",
-  "email": "steve@example.com",
+  "email": "me@example.com",
   "rows": [120, 60, 60],
   "ghost_lcd": false,
   "update_interval": 10,
@@ -36,7 +36,7 @@
   "panels": {
 
     "time": {
-      "color": [180, 150, 0],
+      "color": [255, 30, 30],
       "font_size": 132,
       "format": "%H:%M",
       "fx": 1,
@@ -55,7 +55,7 @@
     },
 
     "seconds": {
-      "color": [140, 100, 0],
+      "color": [180, 20, 20],
       "font_size": 40,
       "format": "%S",
       "fx": 0,

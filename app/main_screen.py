@@ -18,9 +18,9 @@
 """Main (default) rpi-clock screen."""
 
 from rpiclock import log
-from rpiclock.panels.message import MessagePanel
-from rpiclock.panels.time import TimePanel
-from rpiclock.panels.weather import WeatherPanel
+from rpiclock.controller.panels.message import MessagePanel
+from rpiclock.controller.panels.time import TimePanel
+from rpiclock.controller.panels.weather import WeatherPanel
 from rpiclock.view.screen import Screen
 from rpiclock.view.viewport import Viewport
 

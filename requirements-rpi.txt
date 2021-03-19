@@ -1,0 +1,5 @@
+adafruit-python-shell
+click==7.0
+RPi.GPIO
+pillow
+pygame~=2.0.1

@@ -21,10 +21,12 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from io import BytesIO, BufferedRandom
+from PIL import Image
 from time import time
 from urllib.parse import quote
 from urllib.request import urlopen, Request
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional, Union, Any, Tuple
 
 from rpiclock import log
 from rpiclock.typing import Interval
@@ -383,6 +385,8 @@ class FileDataSource(DataSource):
         """
         Required override to check and massage downloaded data.
 
+        The cache path is the data that gets passed along.
+
         :param data: raw data
         :param cache_path: future cache file path
         :return: returned bundle of massaged data and cache
@@ -404,6 +408,8 @@ class FileDataSource(DataSource):
         """
         Required override to load, check, and massage cached data.
 
+        The consumer of this class deals with reading the file.
+
         :param path: cache file path
         :return: cache file path as data
         :raise: I/O exception (won't happen here)
@@ -423,3 +429,93 @@ class FileDataSource(DataSource):
         mode = 'wb' if self.encoding is None else 'w'
         with open(path, mode, encoding=self.encoding) as cache_file:
             return cache_file.write(data)
+
+
+class ImageDataSource(DataSource):
+    """Data source for image file downloads."""
+
+    def __init__(self,
+                 name: str,
+                 *url_parts: str,
+                 user_agent: str = None,
+                 frequency: Interval = None,
+                 extension: str = None,
+                 dimensions: Tuple[int, int] = None):
+        """
+        Construct image file data source.
+
+        Cache frequency zero is only downloaded once and never replaced.
+
+        If dimensions is specified the pillow library will be used to resize the
+        image to those dimensions.
+
+        :param name: data source name
+        :param url: download URL, possibly including {<name>} template fields
+        :param user_agent: optional user agent string
+        :param frequency: update/cache frequency in seconds (default: not cached)
+        :param extension: optional file extension to append
+        :param dimensions: optional target (width, height) dimensions
+        """
+        super().__init__(name, *url_parts, user_agent=user_agent, frequency=frequency)
+        self.extension = extension or ''
+        self.dimensions = dimensions
+
+    def on_process_download(self,
+                            data: Union[str, bytes],
+                            cache_path: str,
+                            ) -> DownloadResult:
+        """
+        Required override to check and massage downloaded data.
+
+        The cache path is the data that gets passed along.
+
+        :param data: raw data
+        :param cache_path: future cache file path
+        :return: returned bundle of massaged data and cache
+        :raise: I/O or other exception
+        """
+        return DownloadResult(cache_path, data)
+
+    def on_generate_cache_path(self, url: str, base_path: str) -> str:
+        """
+        Required override to generate a cache path based on a URL.
+
+        :param url: source URL
+        :param base_path: base cache path
+        :return: full cache file path
+        """
+        return f'{base_path}{self.extension}'
+
+    def on_load_cache_file(self, path: str) -> Any:
+        """
+        Required override to load, check, and massage cached data.
+
+        The consumer of this class deals with reading the file.
+
+        :param path: cache file path
+        :return: cache file path as data
+        :raise: I/O exception (won't happen here)
+        """
+        return path
+
+    def on_save_cache_file(self, path: str, data: Union[str, bytes]):
+        """
+        Required override to save cache data.
+
+        Caller handles exceptions.
+
+        :param path: cache file path
+        :param data: data to save
+        :raise: I/O or other exception
+        """
+        if self.dimensions:
+            # Use the PIL library to save a resized image.
+            # noinspection PyTypeChecker
+            pil_image = Image.open(BufferedRandom(BytesIO(data)))
+            log.info(f'Save image file "{path}" resized to'
+                     f' {self.dimensions[0]}x{self.dimensions[1]}.')
+            pil_resized_image = pil_image.resize(self.dimensions)
+            pil_resized_image.save(path)
+        else:
+            with open(path, 'wb') as cache_file:
+                return cache_file.write(data)

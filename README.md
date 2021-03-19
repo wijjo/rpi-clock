@@ -93,9 +93,7 @@ sudo apt-get install build-essential tk-dev libncurses5-dev libncursesw5-dev lib
 ## PiTFT development requirements.
 
 ```
-sudo apt-get install python3-pygame
-sudo pip3 install --upgrade adafruit-python-shell click==7.0
-sudo pip3 install RPi.GPIO
+sudo pip3 install --upgrade -r requirements-rpi.txt
 git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git
 cd Raspberry-Pi-Installer-Scripts
 sudo python3 adafruit-pitft.py

@@ -23,13 +23,12 @@ import signal
 import sys
 from time import sleep
 from typing import Type
-print(sys.path)
 
 from rpiclock import log
-from rpiclock.events.button import ButtonEvents
-from rpiclock.events.timer import TimerEvents
-from rpiclock.events.tick import TickEvents
-from rpiclock.events.trigger import TriggerEvents
+from rpiclock.controller.events.button import ButtonEvents
+from rpiclock.controller.events.tick import TickEvents
+from rpiclock.controller.events.timer import TimerEvents
+from rpiclock.controller.events.trigger import TriggerEvents
 from rpiclock.model.config import Config
 from rpiclock.view.display import Display
 from rpiclock.view.font_manager import FontManager

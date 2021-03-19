@@ -61,11 +61,12 @@ class TimePanel(Panel):
                 log.error(f'Unsupported time format {self.time_format}'
                           f' for LCD ghost effect.')
 
-    def on_initialize_events(self, event_manager: EventManager):
+    def on_initialize(self, event_manager: EventManager, viewport: Viewport):
         """
         Required event initialization call-back.
 
         :param event_manager: event manager
+        :param viewport: display viewport
         """
         # No events handled here.
         pass

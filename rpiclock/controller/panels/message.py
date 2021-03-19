@@ -44,11 +44,12 @@ class MessagePanel(Panel):
         self.text = text
         self.duration = duration
 
-    def on_initialize_events(self, event_manager: EventManager):
+    def on_initialize(self, event_manager: EventManager, viewport: Viewport):
         """
         Required event initialization call-back.
 
         :param event_manager: event manager
+        :param viewport: display viewport
         """
         # No events handled here.
         pass

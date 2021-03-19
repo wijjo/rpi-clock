@@ -24,7 +24,7 @@ from rpiclock import log
 from rpiclock.controller.event_manager import EventManager
 from rpiclock.model.config import Config
 from rpiclock.model.panel import Panel
-from rpiclock.panels.message import MessagePanel
+from rpiclock.controller.panels.message import MessagePanel
 from rpiclock.typing import Interval, Position, FontSize, Color, Margins
 from rpiclock.view.font_manager import FontManager
 from rpiclock.view.viewport import Viewport
@@ -88,7 +88,7 @@ class Screen:
         self.on_configure_viewports()
         self.on_create_panels()
         for block in self.blocks.values():
-            block.panel.on_initialize_events(self.event_manager)
+            block.panel.on_initialize(self.event_manager, block.viewport)
         self.update_viewports()
 
     def add_viewport(self, name: str, viewport: Viewport):

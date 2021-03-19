@@ -24,13 +24,17 @@ from rpiclock.view.viewport import Viewport
 class Panel:
     """Display panel base class."""
 
-    def on_initialize_events(self, event_manager: EventManager):
+    def on_initialize(self, event_manager: EventManager, viewport: Viewport):
         """
         Required override to handle event initialization.
 
         The Panel sub-class should register handlers here.
 
+        The viewport allows the panel to initialize anything that might depend
+        on viewport dimensions, etc..
+
         :param event_manager: event manager to handle registration
+        :param viewport: viewport for panel display
         """
         raise NotImplementedError
 
@@ -38,7 +42,7 @@ class Panel:
         """
         Required override to handle display.
 
-        :param viewport: outer viewport
+        :param viewport: viewport for panel display
         """
         raise NotImplementedError
 

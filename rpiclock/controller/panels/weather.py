@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from rpiclock.controller.event_manager import EventManager
-from rpiclock.model.data_source import JSONDataSource, FileDataSource
+from rpiclock.model.data_source import JSONDataSource, ImageDataSource
 from rpiclock.model.panel import Panel
 from rpiclock.view.viewport import Viewport
 
@@ -149,34 +149,18 @@ class WeatherPanel(Panel):
         self.longitude = longitude
         self.weather_format = weather_format
         self.metric = metric
-        user_agent = f'({domain}, {email})'
-        self.points_data_source = JSONDataSource(POINTS_SOURCE_NAME,
-                                                 BASE_URL,
-                                                 POINTS_SUB_URL,
-                                                 frequency=POINTS_CACHE_TIMEOUT,
-                                                 schema=POINTS_SCHEMA,
-                                                 user_agent=user_agent)
-        self.stations_data_source = JSONDataSource(STATIONS_SOURCE_NAME,
-                                                   BASE_URL,
-                                                   STATIONS_SUB_URL,
-                                                   frequency=STATIONS_CACHE_TIMEOUT,
-                                                   user_agent=user_agent)
-        self.observations_data_source = JSONDataSource(OBSERVATIONS_SOURCE_NAME,
-                                                       BASE_URL,
-                                                       OBSERVATIONS_SUB_URL,
-                                                       frequency=OBSERVATIONS_CACHE_TIMEOUT,
-                                                       user_agent=user_agent)
+        self.user_agent = f'({domain}, {email})'
+        # Initialized in on_initialize().
+        self.points_data_source: Optional[JSONDataSource] = None
+        self.stations_data_source: Optional[JSONDataSource] = None
+        self.observations_data_source: Optional[JSONDataSource] = None
         # No URL here, because download request provides entire URL.
-        self.icon_data_source = FileDataSource('weather-icon',
-                                               frequency=ICON_CACHE_TIMEOUT,
-                                               extension=ICON_EXTENSION,
-                                               user_agent=user_agent)
+        self.icon_data_source: Optional[ImageDataSource] = None
         self.text: Optional[str] = None
         self.icon_url: Optional[str] = None
         self.icon_path: Optional[str] = None
         self.ready = False
         self._noaa_params: Optional[NOAAParams] = None
-        self.do_update()
 
     def do_update(self):
         """Called for initial and periodic updates."""
@@ -195,13 +179,38 @@ class WeatherPanel(Panel):
             self.text = f'*{exc}*'
         self.ready = True
 
-    def on_initialize_events(self, event_manager: EventManager):
+    def on_initialize(self, event_manager: EventManager, viewport: Viewport):
         """
         Register handled events.
 
         :param event_manager: event manager
+        :param viewport: display viewport
         """
+        self.points_data_source = JSONDataSource(POINTS_SOURCE_NAME,
+                                                 BASE_URL,
+                                                 POINTS_SUB_URL,
+                                                 frequency=POINTS_CACHE_TIMEOUT,
+                                                 schema=POINTS_SCHEMA,
+                                                 user_agent=self.user_agent)
+        self.stations_data_source = JSONDataSource(STATIONS_SOURCE_NAME,
+                                                   BASE_URL,
+                                                   STATIONS_SUB_URL,
+                                                   frequency=STATIONS_CACHE_TIMEOUT,
+                                                   user_agent=self.user_agent)
+        self.observations_data_source = JSONDataSource(OBSERVATIONS_SOURCE_NAME,
+                                                       BASE_URL,
+                                                       OBSERVATIONS_SUB_URL,
+                                                       frequency=OBSERVATIONS_CACHE_TIMEOUT,
+                                                       user_agent=self.user_agent)
+        # No URL here, because download request provides entire URL.
+        self.icon_data_source = ImageDataSource('weather-icon',
+                                                frequency=ICON_CACHE_TIMEOUT,
+                                                extension=ICON_EXTENSION,
+                                                user_agent=self.user_agent,
+                                                dimensions=(viewport.inner_rect.width,
+                                                            viewport.inner_rect.height))
         event_manager.register('timer', self.do_update, POLL_FREQUENCY)
+        self.do_update()
 
     @property
     def noaa_params(self) -> NOAAParams:

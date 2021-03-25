@@ -66,6 +66,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/rpiclock/controller/main_controller.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/rpiclock/model/data_source.py">
           <value>
             <Attribute>

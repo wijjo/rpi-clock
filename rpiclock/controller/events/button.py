@@ -15,54 +15,50 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-"""GPIO button event producer."""
+"""Button event producer."""
 
-from RPi import GPIO
 from typing import List, Optional
 
 from rpiclock import log
+from rpiclock.controller.base_driver import BaseDriver
 from rpiclock.controller.event_handler import EventHandler
 from rpiclock.controller.event_producer import EventProducer
 
 
 class ButtonEvents(EventProducer):
-    """GPIO button event producer."""
+    """Button event producer."""
 
-    def __init__(self, button_pins: List[int]):
+    def __init__(self, driver: BaseDriver):
         """Constructor."""
-        self.button_pins = button_pins
-        self.button_handlers: List[Optional[EventHandler]] = [None] * len(self.button_pins)
-        log.debug('Initialize GPIO.')
-        GPIO.setmode(GPIO.BCM)
-        for pin in self.button_pins:
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        self.driver = driver
+        self.button_count = driver.get_button_count()
+        self.button_handlers: List[Optional[EventHandler]] = [None] * self.button_count
 
     # noinspection PyMethodOverriding
-    def register(self, handler: EventHandler, button_idx: int):
+    def register(self, handler: EventHandler, button_number: int):
         """
         Register button event handler.
 
         :param handler: event handler
-        :param button_idx: button index, 1 to button count
+        :param button_number: button number, 1 through button count
         """
-        if 0 < button_idx <= len(self.button_pins):
-            self.button_handlers[button_idx - 1] = handler
+        if 0 < button_number <= self.button_count:
+            self.button_handlers[button_number - 1] = handler
         else:
-            log.error(f'Unable to register event for bad button index: {button_idx}')
+            log.error(f'Unable to register event for bad button index: {button_number}')
 
     def tick(self):
         """Polling call-back to check buttons and invoke handlers."""
-        for pin_idx, pin in enumerate(self.button_pins):
-            if not GPIO.input(pin):
-                if self.button_handlers[pin_idx] is not None:
-                    self.button_handlers[pin_idx].function()
+        for button_number in self.driver.iterate_pressed_buttons():
+            if self.button_handlers[button_number] is not None:
+                self.button_handlers[button_number].function()
 
     def clear(self):
         """Clear all button handlers."""
-        for pin_idx, pin in enumerate(self.button_pins):
-            if (self.button_handlers[pin_idx] is not None
-                    and not self.button_handlers[pin_idx].permanent):
-                self.button_handlers[pin_idx] = None
+        for button_idx in range(self.button_count):
+            if (self.button_handlers[button_idx] is not None
+                    and not self.button_handlers[button_idx].permanent):
+                self.button_handlers[button_idx] = None
 
     def send(self, *args, **kwargs):
         """Unsupported required call-back for generating explicit event."""

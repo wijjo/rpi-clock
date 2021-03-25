@@ -37,6 +37,7 @@ from rpiclock.view.screen_manager import ScreenManager
 from rpiclock.view.viewport import Viewport
 
 from .event_manager import EventManager
+from .rpi_driver import RPIDriver
 
 DEFAULT_POLL_INTERVAL = 0.1
 
@@ -54,7 +55,12 @@ class MainController:
         self.config = Config(config_path)
         self.poll_interval = self.config.poll_interval or DEFAULT_POLL_INTERVAL
         self.event_manager = EventManager()
-        self.event_manager.add_producer('button', ButtonEvents(self.config.gpio.button_pins))
+        self.rpi_driver = RPIDriver(self.config.gpio.button_pins,
+                                    self.config.gpio.brightness_pin,
+                                    self.config.gpio.brightness_frequency,
+                                    self.config.display.brightness)
+        button_event_producer = ButtonEvents(self.rpi_driver)
+        self.event_manager.add_producer('button', button_event_producer)
         self.event_manager.add_producer('timer', TimerEvents())
         self.event_manager.add_producer('tick', TickEvents())
         self.event_manager.add_producer('trigger', TriggerEvents())

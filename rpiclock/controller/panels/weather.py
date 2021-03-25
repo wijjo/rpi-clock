@@ -256,14 +256,17 @@ class WeatherPanel(Panel):
         description = observations_data['properties']['textDescription']
         temperature_data = observations_data['properties']['temperature']
         temperature_value = temperature_data['value']
-        if temperature_data['unitCode'] == 'unit:degC':
-            if not self.metric:
-                temperature_value = temperature_value * 1.8 + 32
+        if temperature_value is not None:
+            if temperature_data['unitCode'] == 'unit:degC':
+                if not self.metric:
+                    temperature_value = temperature_value * 1.8 + 32
+            else:
+                if self.metric:
+                    temperature_value = (temperature_value - 32) / 1.8
+            temperature = f'{int(temperature_value)}\u00b0'
         else:
-            if self.metric:
-                temperature_value = (temperature_value - 32) / 1.8
+            temperature = '--'
         icon = observations_data['properties']['icon']
-        temperature = f'{int(temperature_value)}\u00b0'
         return NOAAObservations(timestamp, description, temperature, icon)
 
     def on_display(self, viewport: Viewport):

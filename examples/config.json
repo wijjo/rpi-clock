@@ -36,7 +36,7 @@
   "panels": {
 
     "time": {
-      "color": [255, 30, 30],
+      "color": [255, 0, 0],
       "font_size": 132,
       "format": "%H:%M",
       "fx": 1,
@@ -45,7 +45,7 @@
     },
 
     "date": {
-      "color": [200, 40, 200],
+      "color": [200, 0, 200],
       "font_size": 40,
       "format": "%a %b %d",
       "fx": 0,
@@ -55,7 +55,7 @@
     },
 
     "seconds": {
-      "color": [180, 20, 20],
+      "color": [180, 0, 0],
       "font_size": 40,
       "format": "%S",
       "fx": 0,
@@ -65,7 +65,7 @@
     },
 
     "temperature": {
-      "color": [220, 50, 50],
+      "color": [160, 160, 0],
       "font_size": 36,
       "format": "%T",
       "fx": 0,
@@ -76,7 +76,7 @@
     },
 
     "conditions": {
-      "color": [40, 200, 160],
+      "color": [0, 160, 160],
       "font_size": 18,
       "format": "%D",
       "fx": 0,
@@ -86,7 +86,7 @@
     },
 
     "icon": {
-      "border_color": [40, 150, 150],
+      "border_color": [0, 160, 160],
       "font_size": 12,
       "format": "%I",
       "fx": 0.5,

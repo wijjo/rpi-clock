@@ -58,7 +58,7 @@ class MainController:
         self.rpi_driver = RPIDriver(self.config.gpio.button_pins,
                                     self.config.gpio.brightness_pin,
                                     self.config.gpio.brightness_frequency,
-                                    self.config.display.brightness)
+                                    self.config.brightness)
         button_event_producer = ButtonEvents(self.rpi_driver)
         self.event_manager.add_producer('button', button_event_producer)
         self.event_manager.add_producer('timer', TimerEvents())

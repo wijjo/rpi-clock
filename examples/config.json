@@ -6,9 +6,9 @@
   "rows": [120, 60, 60],
   "ghost_lcd": false,
   "update_interval": 10,
-  "bg_color": [0, 0, 40],
-  "border_color": [0, 0, 40],
   "poll_interval": 0.1,
+  "brightness": 1023,
+  "theme": "dark",
 
   "display": {
     "device": "/dev/fb1",
@@ -16,13 +16,38 @@
     "left": 0,
     "top": 0,
     "width": 320,
-    "height": 240,
-    "brightness": 1023
+    "height": 240
   },
 
   "fonts": {
     "time": "digitaldisplayregular-odeo",
     "text": "ibmplexsans-text"
+  },
+
+  "themes": {
+    "dark": {
+      "background": [0, 0, 0],
+      "border": [0, 0, 0],
+      "time": [255, 0, 0],
+      "date": [200, 0, 200],
+      "seconds": [180, 0, 0],
+      "temperature": [200, 200, 0],
+      "conditions": [0, 200, 200],
+      "message": [128, 128, 128],
+      "icon_border": [128, 128, 128]
+    },
+
+    "light": {
+      "background": [160, 160, 160],
+      "border": [160, 160, 160],
+      "time": [160, 0, 0],
+      "date": [140, 0, 140],
+      "seconds": [120, 0, 0],
+      "temperature": [80, 80, 0],
+      "conditions": [0, 80, 80],
+      "message": [128, 128, 128],
+      "icon_border": [128, 128, 128]
+    }
   },
 
   "gpio": {
@@ -39,7 +64,6 @@
   "panels": {
 
     "time": {
-      "color": [255, 0, 0],
       "font_size": 132,
       "format": "%H:%M",
       "fx": 1,
@@ -48,7 +72,6 @@
     },
 
     "date": {
-      "color": [200, 0, 200],
       "font_size": 40,
       "format": "%a %b %d",
       "fx": 0,
@@ -58,7 +81,6 @@
     },
 
     "seconds": {
-      "color": [180, 0, 0],
       "font_size": 40,
       "format": "%S",
       "fx": 0,
@@ -68,7 +90,6 @@
     },
 
     "temperature": {
-      "color": [160, 160, 0],
       "font_size": 36,
       "format": "%T",
       "fx": 0,
@@ -79,7 +100,6 @@
     },
 
     "conditions": {
-      "color": [0, 160, 160],
       "font_size": 18,
       "format": "%D",
       "fx": 0,
@@ -89,7 +109,6 @@
     },
 
     "icon": {
-      "border_color": [0, 160, 160],
       "font_size": 12,
       "format": "%I",
       "fx": 0.5,
@@ -99,7 +118,6 @@
     },
 
     "message": {
-      "color": [60, 120, 30],
       "font_size": 12,
       "fx": 0,
       "fy": 0.5,

@@ -22,20 +22,20 @@ import os
 import signal
 import sys
 from time import sleep
-from typing import Type
+from typing import Type, Optional
 
 from rpiclock import log
-from rpiclock.controller.events.button import ButtonEvents
-from rpiclock.controller.events.tick import TickEvents
-from rpiclock.controller.events.timer import TimerEvents
-from rpiclock.controller.events.trigger import TriggerEvents
 from rpiclock.model.config import Config
-from rpiclock.view.display import Display
 from rpiclock.view.font_manager import FontManager
 from rpiclock.view.screen import Screen
 from rpiclock.view.screen_manager import ScreenManager
 from rpiclock.view.viewport import Viewport
 
+from .device_driver import DeviceDriver
+from .events.button import ButtonEvents
+from .events.tick import TickEvents
+from .events.timer import TimerEvents
+from .events.trigger import TriggerEvents
 from .event_manager import EventManager
 from .rpi_driver import RPIDriver
 
@@ -55,11 +55,8 @@ class MainController:
         self.config = Config(config_path)
         self.poll_interval = self.config.poll_interval or DEFAULT_POLL_INTERVAL
         self.event_manager = EventManager()
-        self.rpi_driver = RPIDriver(self.config.gpio.button_pins,
-                                    self.config.gpio.brightness_pin,
-                                    self.config.gpio.brightness_frequency,
-                                    self.config.brightness)
-        button_event_producer = ButtonEvents(self.rpi_driver)
+        self.driver = _get_driver(self.config.device.type, self.config.device.params)
+        button_event_producer = ButtonEvents(self.driver)
         self.event_manager.add_producer('button', button_event_producer)
         self.event_manager.add_producer('timer', TimerEvents())
         self.event_manager.add_producer('tick', TickEvents())
@@ -91,14 +88,9 @@ class MainController:
                                         permanent=True)
         self.font_manager = FontManager(os.path.join(base_folder, 'fonts'))
         self.screen_manager = ScreenManager(self.event_manager)
-        self.display = Display(self.config.display.left,
-                               self.config.display.top,
-                               self.config.display.width,
-                               self.config.display.height,
-                               self.config.display.device,
-                               self.config.display.driver)
-        self.display.clear()
+        self.display = self.driver.get_display()
         self.outer_viewport = Viewport(self.display, self.event_manager, self.display.rect)
+        self.outer_viewport.clear()
         atexit.register(self.cleanup)
 
         def _signal_handler(signum, _frame):
@@ -181,3 +173,14 @@ class MainController:
         except KeyboardInterrupt:
             sys.stderr.write(os.linesep)
             sys.exit(2)
+
+
+def _get_driver(device_type: str, params: Optional[dict]) -> DeviceDriver:
+    # noinspection PyBroadException
+    try:
+        if device_type == 'rpi':
+            return RPIDriver(params)
+        raise ValueError(f'Bad device type "{device_type}".')
+    except Exception as exc:
+        log.critical(exc)
+        sys.exit(1)

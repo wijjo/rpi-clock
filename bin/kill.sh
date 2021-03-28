@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/sh
 
 # Copyright (C) 2021, Steven Cooper
 #
@@ -17,10 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-# Tail the rpi-clock log file.
+# Kill running rpi-clock application.
+# Assumes run.sh was used to generate .pid file.
 
 # shellcheck disable=SC2006 disable=SC2086 disable=SC2024
 
-_app_dir=`dirname $0`
-_log_file=$_app_dir/rpi-clock.log
-tail -F $_log_file
+_uid=$(id -u)
+_bin_dir=$(dirname "$0")
+_app_dir=$(dirname "$_bin_dir")
+_run_dir="$_app_dir/run"
+_pid_file="$_run_dir/rpi-clock.pid"
+if [ -f "$_pid_file" ]; then
+  _pid=$(cat "$_pid_file")
+  echo "Killing _PID $_pid..."
+  if [ $_uid -eq 0 ]; then
+    kill $_pid
+    rm -fv "$_pid_file"
+  else
+    sudo kill $_pid
+    sudo rm -fv "$_pid_file"
+  fi
+else
+  echo "$_pid_file does not exist."
+fi

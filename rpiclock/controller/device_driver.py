@@ -17,11 +17,47 @@
 
 """Base hardware driver."""
 
-from typing import Iterator
+from typing import Iterator, Optional, Dict, List
+
+from rpiclock.view.display import Display
 
 
-class BaseDriver:
+class _Required:
+    pass
+
+
+PARAM_REQUIRED = _Required
+
+
+class DeviceDriver:
     """Base class for hardware driver."""
+
+    def __init__(self, params: Optional[Dict], **meta):
+        """
+        Device driver constructor.
+
+        :param params: driver configuration parameters
+        :param meta: param metadata
+        """
+        self.params = params or {}
+        if meta:
+            missing: List[str] = []
+            for name, value in meta.items():
+                if name not in self.params:
+                    if value is _Required:
+                        missing.append(name)
+                    else:
+                        self.params[name] = value
+            if missing:
+                raise ValueError(f'Missing {self.__class__.__name__} params: {" ".join(missing)}')
+
+    def get_display(self) -> Display:
+        """
+        Provide object that implements display support.
+
+        :return: Display sub-class instance
+        """
+        raise NotImplementedError
 
     def get_button_count(self) -> int:
         """

@@ -17,7 +17,6 @@
 
 """General-purpose utility functions and classes."""
 
-import pygame
 from dataclasses import dataclass
 from typing import Optional
 
@@ -26,107 +25,104 @@ from rpiclock.typing import Margins
 
 
 @dataclass
-class MarginData:
-    """Margin data for specifying PyGame rectangle border."""
-
+class Rect:
+    """Screen rectangle data."""
     left: int
     top: int
-    right: int
-    bottom: int
+    width: int
+    height: int
 
-    def adjust_rect(self, rect: pygame.Rect) -> pygame.Rect:
+    def sub_rect(self,
+                 left: int = None,
+                 top: int = None,
+                 width: int = None,
+                 height: int = None,
+                 fleft: float = None,
+                 ftop: float = None,
+                 fwidth: float = None,
+                 fheight: float = None,
+                 margins: Margins = None,
+                 ) -> 'Rect':
         """
-        Produce an inner rectangle based on another rectangle and margin data.
+        Calculate and produce a sub-rectangle based on various ways of specifying offsets.
 
-        :param rect: outer rectangle
-        :return: inner rectangle
+        :param left: optional left pixel position
+        :param top: optional top pixel position
+        :param width: optional pixel width
+        :param height: optional pixel height
+        :param fleft: optional left position as a fractional float
+        :param ftop: optional top position as a fractional float
+        :param fwidth: optional width as a fractional float
+        :param fheight: optional height as a fractional float
+        :param margins: optional full margin specification
+        :return:
         """
-        return pygame.Rect(rect.left + self.left,
-                           rect.top + self.top,
-                           rect.width - (self.left + self.right),
-                           rect.height - (self.top + self.bottom))
+        inner_rect = self.inner_rect(margins)
+        if fwidth is None:
+            if width is None:
+                width = inner_rect.width
+        else:
+            width = int(inner_rect.width * fwidth)
+        if fheight is None:
+            if height is None:
+                height = inner_rect.height
+        else:
+            height = int(inner_rect.height * fheight)
+        if fleft is None:
+            if left is None:
+                left = inner_rect.left
+            else:
+                left = inner_rect.left + left
+        else:
+            left = inner_rect.left + int(fleft * (inner_rect.width - width))
+        if ftop is None:
+            if top is None:
+                top = inner_rect.top
+            else:
+                top = inner_rect.top + top
+        else:
+            top = inner_rect.top + int(ftop * (inner_rect.height - height))
+        ret_rect = Rect(left, top, width, height)
+        return ret_rect
 
-    @classmethod
-    def from_raw(cls, margins: Optional[Margins]) -> 'MarginData':
+    def inner_rect(self, margins: Optional[Margins]) -> 'Rect':
         """
-        Convert margin spec as tuple, integer, or None to (left, top, right, bottom) tuple.
+        Calculate an inner rectangle based on flexible margin data.
 
-        :param margins: margin specification
-        :return: (left, top, right, bottom) tuple
+        :param margins: margins to use for adjustment
+        :return: adjusted inner rectangle
         """
-        if margins is None:
-            return cls(0, 0, 0, 0)
+        # A single integer is applied to all offsets.
         if isinstance(margins, int):
-            return cls(margins, margins, margins, margins)
-        # Handle lists as tuples, to accommodate data from external configurations.
+            return Rect(self.left + margins,
+                        self.top + margins,
+                        self.width - (2 * margins),
+                        self.height - (2 * margins))
+        # An integer pair is applied equally to horizontal and vertical offsets.
         if isinstance(margins, (tuple, list)) and len(margins) == 2:
-            return cls(margins[0], margins[1], margins[0], margins[1])
-        if isinstance(margins, (tuple, list)) and len(margins) == 4:
-            return cls(margins[0], margins[1], margins[2], margins[3])
-        log.error(f'Bad margins value: {margins}')
-        return cls(0, 0, 0, 0)
+            return Rect(self.left + margins[0],
+                        self.top + margins[1],
+                        self.width - (2 * margins[0]),
+                        self.height - (2 * margins[1]))
+        # 4 integers is (left, top, right, bottom)
+        elif isinstance(margins, (tuple, list)) and len(margins) == 4:
+            return Rect(self.left + margins[0],
+                        self.top + margins[1],
+                        self.width - (margins[0] + margins[2]),
+                        self.height - (margins[1] + margins[3]))
+        # Anything other than None is an error. Return the same rectangle.
+        if margins is not None:
+            log.error(f'Bad margins value: {margins}')
+        return Rect(self.left, self.top, self.width, self.height)
 
-    def __str__(self):
-        """
-        Human-friendlier string conversion.
 
-        :return: descriptive string with data
-        """
-        return f'MarginData(left={self.left}, top={self.top},' \
-               f' right={self.right}, bottom={self.bottom}'
+@dataclass
+class Dimensions:
+    """Display dimensions data."""
+    width: int
+    height: int
 
 
-def sub_rect(outer_rect: pygame.Rect,
-             left: int = None,
-             top: int = None,
-             width: int = None,
-             height: int = None,
-             fleft: float = None,
-             ftop: float = None,
-             fwidth: float = None,
-             fheight: float = None,
-             margins: Margins = None,
-             ) -> pygame.Rect:
-    """
-    Calculate sub-rect of outer rect based on various ways of specifying offsets.
-
-    :param outer_rect: outer rectangle
-    :param left: optional left pixel position
-    :param top: optional top pixel position
-    :param width: optional pixel width
-    :param height: optional pixel height
-    :param fleft: optional left position as a fractional float
-    :param ftop: optional top position as a fractional float
-    :param fwidth: optional width as a fractional float
-    :param fheight: optional height as a fractional float
-    :param margins: optional full margin specification
-    :return:
-    """
-    margin_data = MarginData.from_raw(margins)
-    inner_rect = margin_data.adjust_rect(outer_rect)
-    if fwidth is None:
-        if width is None:
-            width = inner_rect.width
-    else:
-        width = int(inner_rect.width * fwidth)
-    if fheight is None:
-        if height is None:
-            height = inner_rect.height
-    else:
-        height = int(inner_rect.height * fheight)
-    if fleft is None:
-        if left is None:
-            left = inner_rect.left
-        else:
-            left = inner_rect.left + left
-    else:
-        left = inner_rect.left + int(fleft * (inner_rect.width - width))
-    if ftop is None:
-        if top is None:
-            top = inner_rect.top
-        else:
-            top = inner_rect.top + top
-    else:
-        top = inner_rect.top + int(ftop * (inner_rect.height - height))
-    ret_rect = pygame.Rect(left, top, width, height)
-    return ret_rect
+class Font:
+    """Base stub class for a font."""
+    pass

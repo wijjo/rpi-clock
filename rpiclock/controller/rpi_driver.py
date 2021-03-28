@@ -18,58 +18,59 @@
 """Raspberry Pi hardware driver."""
 
 import os
-from contextlib import contextmanager
 from RPi import GPIO
-from typing import Sequence, Iterator, Optional
+from typing import Iterator, Optional, Dict
 
 from rpiclock import log
-from rpiclock.controller.base_driver import BaseDriver
+from rpiclock.view.pygame_display import PygameDisplay
+
+from .device_driver import DeviceDriver, PARAM_REQUIRED
+
+GPIO_PATH = '/usr/bin/gpio'
+DEFAULT_BRIGHTNESS_FREQUENCY = 1000
 
 
-class RPIDriver(BaseDriver):
+class RPIDriver(DeviceDriver):
     """Hardware controller for Raspberry Pi."""
 
-    gpio_path = '/usr/bin/gpio'
-    default_brightness_frequency = 1000
-
-    def __init__(self,
-                 button_pins: Optional[Sequence[int]],
-                 brightness_pin: Optional[int],
-                 brightness_frequency: Optional[int],
-                 brightness: Optional[int]):
+    def __init__(self, params: Optional[Dict]):
         """
         RPI driver constructor.
 
-        :param button_pins: support button pin GPIO numbers
-        :param brightness_pin: PWM control pin GPIO number
-        :param brightness_frequency: PWM control frequency
-        :param brightness: initial brightness value
+        :param params: driver configuration parameters
         """
-        self.button_pins = button_pins
-        self.brightness_pin = brightness_pin
-        self.brightness_frequency = brightness_frequency or self.default_brightness_frequency
+        super().__init__(params,
+                         left=0,
+                         top=0,
+                         width=PARAM_REQUIRED,
+                         height=PARAM_REQUIRED,
+                         framebuffer_device=PARAM_REQUIRED,
+                         framebuffer_driver=PARAM_REQUIRED,
+                         button_pins=[],
+                         brightness=None,
+                         brightness_pin=None,
+                         brightness_frequence=DEFAULT_BRIGHTNESS_FREQUENCY)
+
         log.debug('Initialize GPIO buttons.')
-        if self.button_pins:
-            with self.gpio_mode(GPIO.BCM):
-                for pin in button_pins:
-                    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        if brightness is not None and self.brightness_pin:
-            self.set_brightness(brightness)
+        if self.params['button_pins']:
+            GPIO.setmode(GPIO.BCM)
+            for pin in self.params['button_pins']:
+                GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        if self.params['brightness'] and self.params['brightness_pin']:
+            self.set_brightness(self.params['brightness'])
 
-    @classmethod
-    @contextmanager
-    def gpio_mode(cls, mode: int):
+    def get_display(self) -> PygameDisplay:
         """
-        Set and restore mode when exiting context.
+        Provide object that implements display support.
 
-        :param mode: GPIO mode to set
+        :return: Display sub-class instance
         """
-        previous_mode = GPIO.getmode()
-        if mode != previous_mode:
-            GPIO.setmode(mode)
-        yield
-        if previous_mode is not None and mode != previous_mode:
-            GPIO.setmode(previous_mode)
+        return PygameDisplay(self.params['left'],
+                             self.params['top'],
+                             self.params['width'],
+                             self.params['height'],
+                             self.params['framebuffer_device'],
+                             self.params['framebuffer_driver'])
 
     def get_button_count(self) -> int:
         """
@@ -77,7 +78,7 @@ class RPIDriver(BaseDriver):
 
         :return: button count
         """
-        return len(self.button_pins) if self.button_pins else 0
+        return len(self.params['button_pins'])
 
     def iterate_pressed_buttons(self) -> Iterator[int]:
         """
@@ -85,10 +86,9 @@ class RPIDriver(BaseDriver):
 
         :return: button index [0-n] iterator for pressed buttons
         """
-        if self.button_pins:
-            for button_index, pin in enumerate(self.button_pins):
-                if not GPIO.input(pin):
-                    yield button_index
+        for button_index, pin in enumerate(self.params['button_pins']):
+            if not GPIO.input(pin):
+                yield button_index
 
     def set_brightness(self, brightness: int):
         """
@@ -99,12 +99,12 @@ class RPIDriver(BaseDriver):
 
         :param brightness: brightness value (understood by sub-class)
         """
-        if self.brightness_pin:
-            if os.path.exists(self.gpio_path):
+        if self.params['brightness_pin']:
+            if os.path.exists(GPIO_PATH):
                 log.info(f'Set brightness to {brightness}.')
-                commands = [f'{self.gpio_path} -g mode {self.brightness_pin} pwm',
-                            f'{self.gpio_path} pwmc {self.brightness_frequency}',
-                            f'{self.gpio_path} -g pwm {self.brightness_pin} {brightness}']
+                commands = [f'{GPIO_PATH} -g mode {self.params["brightness_pin"]} pwm',
+                            f'{GPIO_PATH} pwmc {self.params["brightness_frequency"]}',
+                            f'{GPIO_PATH} -g pwm {self.params["brightness_pin"]} {brightness}']
                 if os.system('; '.join(commands)) != 0:
                     log.error('Failed to change display brightness.')
             else:

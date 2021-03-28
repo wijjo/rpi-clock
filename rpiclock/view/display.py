@@ -17,8 +17,9 @@
 
 """Display representing a physical screen device."""
 
-import os
-import pygame
+from rpiclock.typing import Color
+
+from .utility import Rect, Font, Dimensions
 
 # Defaults and constants.
 COLOR_DEFAULT_FOREGROUND = (255, 255, 255)
@@ -28,15 +29,9 @@ COLOR_GHOST_TEXT = (25, 25, 25)
 
 
 class Display:
-    """Display screen class."""
+    """Base display screen class."""
 
-    def __init__(self,
-                 left: int,
-                 top: int,
-                 width: int,
-                 height: int,
-                 device: str,
-                 driver: str):
+    def __init__(self, left: int, top: int, width: int, height: int):
         """
         Display constructor.
 
@@ -44,25 +39,58 @@ class Display:
         :param top: screen top (usually 0)
         :param width: screen width in pixels
         :param height: screen height in pixels
-        :param device: device name, e.g. "/dev/fb1"
-        :param driver: driver name, e.g. "fbcon"
         """
-        self.rect = pygame.Rect(left, top, width, height)
-        os.putenv('SDL_FBDEV', device)
-        os.putenv('SDL_VIDEODRIVER', driver)
-        pygame.font.init()
-        pygame.display.init()
-        pygame.mouse.set_visible(False)
-        self.bg_color = COLOR_DEFAULT_BACKGROUND
-        self.surface = pygame.display.set_mode((self.rect.width, self.rect.height))
+        self.rect = Rect(left, top, width, height)
 
-    @staticmethod
-    def shut_down():
-        """Handle clean shutdown."""
-        pygame.display.quit()
-        pygame.font.quit()
+    def shut_down(self):
+        """Required override to handle clean shutdown."""
+        raise NotImplementedError
 
-    def clear(self):
-        """Clear screen."""
-        self.surface.fill(self.bg_color)
-        pygame.display.update()
+    def get_font(self, path: str, size: int) -> Font:
+        """
+        Required override to provide font object by path and size.
+
+        :param path: font file path
+        :param size: font size
+        :return: font object
+        """
+        raise NotImplementedError
+
+    def measure_text(self, text: str, font: Font) -> Dimensions:
+        """
+        Required override to calculate displayed text size.
+
+        :param text: text that will be displayed
+        :param font: font that will be used for rendering
+        :return: text dimensions
+        """
+        raise NotImplementedError
+
+    def render_text(self, text: str, font: Font, rect: Rect, color: Color):
+        """
+        Required override to render text.
+
+        :param text: text to render
+        :param font: display font
+        :param rect: rectangle to target for rendering
+        :param color: text color
+        """
+        raise NotImplementedError
+
+    def fill_rectangle(self, color: Color, rect: Rect):
+        """
+        Required override to fill rectangle with color.
+
+        :param color: color to use
+        :param rect: rectangle to fill
+        """
+        raise NotImplementedError
+
+    def render_image(self, path: str, rect: Rect):
+        """
+        Render image file.
+
+        :param path: image file path
+        :param rect: image display rectangle
+        """
+        raise NotImplementedError

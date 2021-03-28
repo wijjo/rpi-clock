@@ -18,15 +18,13 @@
 """Viewport support for screen display regions."""
 
 import os
-import pygame
 from typing import Optional, List
 
 from rpiclock import log
 from rpiclock.controller.event_manager import EventManager
-from rpiclock.view.display import Display, \
-    COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND, COLOR_DEFAULT_BORDER
-from rpiclock.typing import Color, FontSize, Position, Rect, Interval, Margins
-from rpiclock.view.utility import sub_rect
+from rpiclock.typing import Color, FontSize, Position, Interval, Margins
+from .display import Display, COLOR_DEFAULT_FOREGROUND, COLOR_DEFAULT_BACKGROUND, COLOR_DEFAULT_BORDER
+from .utility import Rect, Font
 
 
 # noinspection DuplicatedCode
@@ -94,19 +92,19 @@ class Viewport:
         if border_color is not None:
             self.border_color = border_color
         self.margins = margins
-        self.inner_rect = sub_rect(self.rect, margins=self.margins)
+        self.inner_rect = self.rect.sub_rect(margins=self.margins)
         # Discard font cache in case font parameters have changed.
         self._font = None
 
     @property
-    def font(self) -> pygame.font.Font:
+    def font(self) -> Font:
         """
         Viewport font property.
 
         :return: assigned viewport font.
         """
         if self._font is None:
-            self._font = pygame.font.Font(self.font_path, self.font_size)
+            self._font = self.display.get_font(self.font_path, self.font_size)
         return self._font
 
     def clear(self):
@@ -116,10 +114,10 @@ class Viewport:
         if (self.border_color == self.bg_color
             or (self.inner_rect.width == self.rect.width
                 and self.inner_rect.height == self.rect.height)):
-            self.display.surface.fill(self.bg_color, rect=self.rect)
+            self.display.fill_rectangle(self.bg_color, rect=self.rect)
         else:
-            self.display.surface.fill(self.border_color, rect=self.rect)
-            self.display.surface.fill(self.bg_color, rect=self.inner_rect)
+            self.display.fill_rectangle(self.border_color, rect=self.rect)
+            self.display.fill_rectangle(self.bg_color, rect=self.inner_rect)
 
     def text(self,
              text: str,
@@ -139,13 +137,12 @@ class Viewport:
         if not overwrite:
             self.clear()
         while True:
-            text_width, text_height = self.font.size(text)
-            text_rect = sub_rect(self.rect,
-                                 fleft=self.fx,
-                                 ftop=self.fy,
-                                 width=text_width,
-                                 height=text_height,
-                                 margins=self.margins)
+            text_size = self.display.measure_text(text, self.font)
+            text_rect = self.rect.sub_rect(fleft=self.fx,
+                                           ftop=self.fy,
+                                           width=text_size.width,
+                                           height=text_size.height,
+                                           margins=self.margins)
             if text_rect.width <= self.inner_rect.width:
                 break
             shortened_text = text[:-4] if text.endswith('...') else text[:-1]
@@ -154,9 +151,7 @@ class Viewport:
             text = f'{shortened_text}...'
         if color is None:
             color = self.color
-        text_surface = self.font.render(text, True, color)
-        self.display.surface.blit(text_surface, text_rect)
-        pygame.display.update()
+        self.display.render_text(text, self.font, text_rect, color)
         if duration is not None:
             self.event_manager.register('timer', self.clear, duration, max_count=1)
 
@@ -179,18 +174,8 @@ class Viewport:
             return
         if not overwrite:
             self.clear()
-        image_surface = pygame.image.load(path)
-        # Supposedly speeds rendering to let surface perform conversion.
-        if path.lower().endswith('.png'):
-            image_surface = image_surface.convert_alpha()
-        else:
-            image_surface = image_surface.convert()
-        image_rect = sub_rect(self.rect,
-                              fleft=self.fx,
-                              ftop=self.fy,
-                              margins=self.margins)
-        self.display.surface.blit(image_surface, image_rect)
-        pygame.display.update()
+        image_rect = self.rect.sub_rect(fleft=self.fx, ftop=self.fy, margins=self.margins)
+        self.display.render_image(path, image_rect)
         if duration is not None:
             self.event_manager.register('timer', self.clear, duration, max_count=1)
 
@@ -227,10 +212,10 @@ class Viewport:
                     rect = None
                     consumed_width = available_width
                 else:
-                    rect = pygame.Rect(self.rect.left + consumed_width,
-                                       self.rect.top,
-                                       width,
-                                       self.rect.height)
+                    rect = Rect(self.rect.left + consumed_width,
+                                self.rect.top,
+                                width,
+                                self.rect.height)
                     consumed_width += width
             viewports.append(self.__class__(self.display, self.event_manager, rect))
         return viewports
@@ -269,10 +254,10 @@ class Viewport:
                     rect = None
                     consumed_height = available_height
                 else:
-                    rect = pygame.Rect(self.rect.left,
-                                       self.rect.top + consumed_height,
-                                       self.rect.width,
-                                       height)
+                    rect = Rect(self.rect.left,
+                                self.rect.top + consumed_height,
+                                self.rect.width,
+                                height)
                     consumed_height += height
             viewports.append(self.__class__(self.display, self.event_manager, rect))
         return viewports
@@ -287,7 +272,7 @@ class Viewport:
                 border_color: Color = None,
                 margins: Margins = None) -> 'Viewport':
         """
-        Create overlay viewport positioned in the same screen rectangle.
+        Create overlay viewport positioned at the same screen rectangle.
 
         For now this is the only way to use alternate fonts and colors in the
         same screen location.

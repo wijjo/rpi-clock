@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/sh
 
 # Copyright (C) 2021, Steven Cooper
 #
@@ -25,7 +25,7 @@
 # To enable this program at startup add something like the following line to
 # /etc/rc.local:
 #
-#    sh /home/pi/rpi-clock/run.sh
+#    sh /home/pi/rpi-clock/bin/run.sh
 #
 # Change the path as needed for your rpi-clock installation folder.
 #
@@ -47,10 +47,14 @@ _wait_for_ntp() {
 }
 
 _run() {
-  app_dir=$(dirname "$0")
+  app_dir=$(dirname $(dirname "$0"))
+  log_dir="$app_dir/log"
+  test -d "$log_dir" || mkdir "$log_dir"
+  run_dir="$app_dir/run"
+  test -d "run_dir" || mkdir "$run_dir"
   script="$app_dir/rpi-clock.py"
-  log_file="$app_dir/rpi-clock.log"
-  pid_file="$app_dir/rpi-clock.pid"
+  log_file="$log_dir/rpi-clock.log"
+  pid_file="$run_dir/rpi-clock.pid"
   rm_cmd=rm
   python_cmd=python3
   cd "$app_dir" || exit 1

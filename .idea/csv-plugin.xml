@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/bin/build.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/config.json">
           <value>
             <Attribute>
@@ -73,7 +80,21 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/rpiclock/controller/rpi_driver.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/rpiclock/model/data_source.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rpiclock/view/utility.py">
           <value>
             <Attribute>
               <option name="separator" value=":" />

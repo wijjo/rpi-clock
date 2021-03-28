@@ -20,7 +20,7 @@
 from typing import List, Optional
 
 from rpiclock import log
-from rpiclock.controller.base_driver import BaseDriver
+from rpiclock.controller.device_driver import DeviceDriver
 from rpiclock.controller.event_handler import EventHandler
 from rpiclock.controller.event_producer import EventProducer
 
@@ -28,7 +28,7 @@ from rpiclock.controller.event_producer import EventProducer
 class ButtonEvents(EventProducer):
     """Button event producer."""
 
-    def __init__(self, driver: BaseDriver):
+    def __init__(self, driver: DeviceDriver):
         """Constructor."""
         self.driver = driver
         self.button_count = driver.get_button_count()

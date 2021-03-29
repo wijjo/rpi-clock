@@ -25,9 +25,11 @@ from rpiclock.controller.event_manager import EventManager
 from rpiclock.model.config import Config
 from rpiclock.model.panel import Panel
 from rpiclock.controller.panels.message import MessagePanel
-from rpiclock.typing import Interval, Position, FontSize, Color, Margins
-from rpiclock.view.font_manager import FontManager
-from rpiclock.view.viewport import Viewport
+from rpiclock.typing import Interval, Position, Color, Margins
+
+from .display import FONT_DEFAULT_SIZE
+from .font_manager import FontManager
+from .viewport import Viewport
 
 
 @dataclass
@@ -86,7 +88,6 @@ class Screen:
         self.event_manager.register('tick', self.on_tick)
         self.on_create_viewports(outer_viewport)
         self.on_configure_viewports()
-        self.on_create_panels()
         for block in self.blocks.values():
             block.panel.on_initialize(self.event_manager, block.viewport)
         self.update_viewports()
@@ -104,26 +105,33 @@ class Screen:
                            name: str,
                            fx: Position = None,
                            fy: Position = None,
-                           font_name: str = None,
-                           font_size: FontSize = None,
+                           font: str = None,
                            color: Color = None,
                            bg_color: Color = None,
                            border_color: Color = None,
-                           margins: Margins = None):
+                           margins: Margins = None,
+                           panel: Panel = None):
         """
         Configure viewport display attributes.
 
         :param name: viewport name
         :param fx: relative horizontal position
         :param fy: relative vertical position
-        :param font_name: font name
-        :param font_size: font size
+        :param font: font name:size specification
         :param color: foreground color
         :param bg_color: background color
         :param border_color: border color
         :param margins: margin spec - all_margins, (horizontal, vertical), or (left, top, right, bottom)
+        :param panel: panel to display in the viewport
         """
-        font_path = self.font_manager.get_font_path(font_name)
+        try:
+            font_name, font_size_string = font.split(':')
+            font_path = self.font_manager.get_font_path(font_name)
+            font_size = int(font_size_string)
+        except ValueError:
+            log.error(f'Bad font specification "{font}".')
+            font_path = self.font_manager.default_font_path
+            font_size = FONT_DEFAULT_SIZE
         self.get_block(name).viewport.configure(fx=fx,
                                                 fy=fy,
                                                 font_path=font_path,
@@ -132,6 +140,8 @@ class Screen:
                                                 bg_color=bg_color,
                                                 border_color=border_color,
                                                 margins=margins)
+        if panel is not None:
+            self.set_panel(name, panel)
 
     def refresh(self):
         """
@@ -165,12 +175,6 @@ class Screen:
     def on_configure_viewports(self):
         """
         Required hook for sub-class viewport configuration.
-        """
-        raise NotImplementedError
-
-    def on_create_panels(self):
-        """
-        Required hook for sub-class panel panel.
         """
         raise NotImplementedError
 

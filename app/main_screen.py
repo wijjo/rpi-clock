@@ -64,95 +64,77 @@ class MainScreen(Screen):
         self.configure_viewport('time',
                                 fx=self.config.panels.time.fx,
                                 fy=self.config.panels.time.fy,
-                                font_name=self.config.fonts.time,
-                                font_size=self.config.panels.time.font_size,
+                                font=self.config.panels.time.font,
                                 color=theme.time,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.time.margins)
+                                margins=self.config.panels.time.margins,
+                                panel=TimePanel(self.config.panels.time.format,
+                                                ghost_lcd=self.config.ghost_lcd))
         self.configure_viewport('date',
                                 fx=self.config.panels.date.fx,
                                 fy=self.config.panels.date.fy,
-                                font_name=self.config.fonts.text,
-                                font_size=self.config.panels.date.font_size,
+                                font=self.config.panels.date.font,
                                 color=theme.date,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.date.margins)
+                                margins=self.config.panels.date.margins,
+                                panel=TimePanel(self.config.panels.date.format))
         self.configure_viewport('seconds',
                                 fx=self.config.panels.seconds.fx,
                                 fy=self.config.panels.seconds.fy,
-                                font_name=self.config.fonts.time,
-                                font_size=self.config.panels.seconds.font_size,
+                                font=self.config.panels.seconds.font,
                                 color=theme.seconds,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.seconds.margins)
+                                margins=self.config.panels.seconds.margins,
+                                panel=TimePanel(self.config.panels.seconds.format,
+                                                ghost_lcd=self.config.ghost_lcd))
         self.configure_viewport('temperature',
                                 fx=self.config.panels.temperature.fx,
                                 fy=self.config.panels.temperature.fy,
-                                font_name=self.config.fonts.text,
-                                font_size=self.config.panels.temperature.font_size,
+                                font=self.config.panels.temperature.font,
                                 color=theme.temperature,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.temperature.margins)
+                                margins=self.config.panels.temperature.margins,
+                                panel=WeatherPanel(self.config.latitude,
+                                                   self.config.longitude,
+                                                   self.config.panels.temperature.format,
+                                                   self.config.domain,
+                                                   self.config.email,
+                                                   self.config.metric))
         self.configure_viewport('conditions',
                                 fx=self.config.panels.conditions.fx,
                                 fy=self.config.panels.conditions.fy,
-                                font_name=self.config.fonts.text,
-                                font_size=self.config.panels.conditions.font_size,
+                                font=self.config.panels.conditions.font,
                                 color=theme.conditions,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.conditions.margins)
+                                margins=self.config.panels.conditions.margins,
+                                panel=WeatherPanel(self.config.latitude,
+                                                   self.config.longitude,
+                                                   self.config.panels.conditions.format,
+                                                   self.config.domain,
+                                                   self.config.email))
         self.configure_viewport('icon',
                                 fx=self.config.panels.icon.fx,
                                 fy=self.config.panels.icon.fy,
-                                font_name=self.config.fonts.text,
-                                font_size=self.config.panels.icon.font_size,
+                                font=self.config.panels.icon.font,
                                 bg_color=theme.background,
                                 border_color=theme.icon_border or theme.border,
-                                margins=self.config.panels.icon.margins)
+                                margins=self.config.panels.icon.margins,
+                                panel=WeatherPanel(self.config.latitude,
+                                                   self.config.longitude,
+                                                   self.config.panels.icon.format,
+                                                   self.config.domain,
+                                                   self.config.email))
         self.configure_viewport('message',
                                 fx=self.config.panels.message.fx,
                                 fy=self.config.panels.message.fy,
-                                font_name=self.config.fonts.text,
-                                font_size=self.config.panels.message.font_size,
+                                font=self.config.panels.message.font,
                                 color=theme.message,
                                 bg_color=theme.background,
                                 border_color=theme.border,
-                                margins=self.config.panels.message.margins)
-
-    def on_create_panels(self):
-        """Required call-back to create panels assigned to named viewports."""
-        log.info('Create main screen panels.')
-        self.set_panel('time',
-                       TimePanel(self.config.panels.time.format,
-                                 ghost_lcd=self.config.ghost_lcd))
-        self.set_panel('seconds',
-                       TimePanel(self.config.panels.seconds.format,
-                                 ghost_lcd=self.config.ghost_lcd))
-        self.set_panel('date',
-                       TimePanel(self.config.panels.date.format))
-        self.set_panel('temperature',
-                       WeatherPanel(self.config.latitude,
-                                    self.config.longitude,
-                                    self.config.panels.temperature.format,
-                                    self.config.domain,
-                                    self.config.email,
-                                    self.config.metric))
-        self.set_panel('conditions',
-                       WeatherPanel(self.config.latitude,
-                                    self.config.longitude,
-                                    self.config.panels.conditions.format,
-                                    self.config.domain,
-                                    self.config.email))
-        self.set_panel('icon',
-                       WeatherPanel(self.config.latitude,
-                                    self.config.longitude,
-                                    self.config.panels.icon.format,
-                                    self.config.domain,
-                                    self.config.email))
-        self.set_panel('message',
-                       MessagePanel())
+                                margins=self.config.panels.message.margins,
+                                panel=MessagePanel())

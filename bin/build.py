@@ -106,7 +106,7 @@ def rsync(source_folder: str,
     rsync_command = ['rsync']
     if dry_run:
         rsync_command.append('--dry-run')
-    rsync_command.append('-a')
+    rsync_command.append('-ai')
     if verbose:
         rsync_command.append('-v')
     if delete:

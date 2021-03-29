@@ -51,7 +51,7 @@ _run() {
   log_dir="$app_dir/log"
   test -d "$log_dir" || mkdir "$log_dir"
   run_dir="$app_dir/run"
-  test -d "run_dir" || mkdir "$run_dir"
+  test -d "$run_dir" || mkdir "$run_dir"
   script="$app_dir/rpi-clock.py"
   log_file="$log_dir/rpi-clock.log"
   pid_file="$run_dir/rpi-clock.pid"

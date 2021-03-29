@@ -20,6 +20,8 @@
 import os
 from typing import Dict, Optional
 
+from .display import FONT_DEFAULT_NAME
+
 
 class FontManager:
     """Font manager is responsible for finding font resources."""
@@ -31,18 +33,29 @@ class FontManager:
         :param folder: font resource root folder
         """
         self.fonts_by_name: Dict[str, str] = {}
+        self.default_font_path: Optional[str] = None
         for dir_path, dir_names, file_names in os.walk(folder):
             for file_name in file_names:
                 base_name, extension = os.path.splitext(file_name)
+                base_name = base_name.lower()
                 if extension.lower() in ['.otf', '.ttf']:
                     file_path = os.path.join(dir_path, file_name)
-                    self.fonts_by_name[base_name.lower()] = file_path
+                    self.fonts_by_name[base_name] = file_path
+                    if base_name == FONT_DEFAULT_NAME:
+                        self.default_font_path = file_path
+        if self.default_font_path is None:
+            raise RuntimeError(f'Failed to resolve default font path for "{FONT_DEFAULT_NAME}".')
 
-    def get_font_path(self, name: str) -> Optional[str]:
+    def get_font_path(self, name: str) -> str:
         """
         Look up font path based on name.
+
+        Return the default font if not found.
 
         :param name: font name
         :return: path or None if not found
         """
-        return self.fonts_by_name.get(name.lower())
+        font_path = self.fonts_by_name.get(name.lower())
+        if font_path is None:
+            font_path = self.default_font_path
+        return font_path

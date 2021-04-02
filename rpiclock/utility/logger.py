@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021, Steven Cooper
 #
 # This file is part of rpi-clock.
@@ -17,16 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
+"""Common logger."""
+
 import sys
+import logging
 
-# Require running as root.
-if os.getuid() != 0:
-    sys.stderr.write('ERROR: This script must be run as root, e.g. using sudo.\n')
-    sys.exit(1)
-
-from rpiclock.controller import main
-
-
-if __name__ == '__main__':
-    main(os.path.join(os.path.dirname(__file__), 'config.json'))
+log = logging.getLogger(__name__)
+out_handler = logging.StreamHandler(sys.stdout)
+out_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+out_handler.setLevel(logging.DEBUG)
+log.addHandler(out_handler)
+log.setLevel(logging.DEBUG)

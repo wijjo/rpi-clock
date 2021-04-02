@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021, Steven Cooper
 #
 # This file is part of rpi-clock.
@@ -17,16 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import sys
+"""Utility package."""
 
-# Require running as root.
-if os.getuid() != 0:
-    sys.stderr.write('ERROR: This script must be run as root, e.g. using sudo.\n')
-    sys.exit(1)
+from dataclasses import dataclass
 
-from rpiclock.controller import main
+from .color_resolver import ColorResolver, NAMED_COLORS
+from .config import Config, ConfigDict
+from .data_source import DataSource, JSONDataSource, ImageDataSource
+from .fonts_finder import FontsFinder, FONT_DEFAULT_NAME, FONT_DEFAULT_SIZE
+from .logger import log
+from .rect import Rect
+from .timer import Timer
 
 
-if __name__ == '__main__':
-    main(os.path.join(os.path.dirname(__file__), 'config.json'))
+@dataclass
+class Dimensions:
+    """Display dimensions data."""
+    width: int
+    height: int
+
+
+class Font:
+    """Base stub class for a font."""
+    pass

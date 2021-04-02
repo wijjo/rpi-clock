@@ -73,6 +73,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/rpiclock/controller/configured_screen.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/rpiclock/controller/main_controller.py">
           <value>
             <Attribute>
@@ -81,6 +88,13 @@
           </value>
         </entry>
         <entry key="/rpiclock/controller/rpi_driver.py">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/rpiclock/drivers/rpi.py">
           <value>
             <Attribute>
               <option name="separator" value=":" />

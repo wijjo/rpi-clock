@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021, Steven Cooper
 #
 # This file is part of rpi-clock.
@@ -17,16 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import sys
-
-# Require running as root.
-if os.getuid() != 0:
-    sys.stderr.write('ERROR: This script must be run as root, e.g. using sudo.\n')
-    sys.exit(1)
-
-from rpiclock.controller import main
-
-
-if __name__ == '__main__':
-    main(os.path.join(os.path.dirname(__file__), 'config.json'))
+# Color constants.
+COLOR_DEFAULT_FOREGROUND = (255, 255, 255)
+COLOR_DEFAULT_BACKGROUND = (0, 0, 0)
+COLOR_DEFAULT_BORDER = COLOR_DEFAULT_BACKGROUND
+COLOR_GHOST_TEXT = (25, 25, 25)

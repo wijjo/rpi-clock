@@ -1,27 +1,29 @@
 {
-  "latitude": 88.88,
-  "longitude": -88.88,
-  "domain": "example.com",
-  "email": "me@example.com",
-  "rows": [120, 60, 60],
-  "ghost_lcd": false,
   "update_interval": 10,
   "poll_interval": 0.1,
-  "brightness": 1023,
   "theme": "dark",
 
-  "display": {
-    "device": "/dev/fb1",
-    "driver": "fbcon",
-    "left": 0,
-    "top": 0,
-    "width": 320,
-    "height": 240
+  "panel_params": {
+    "weather": {
+      "email": "me@example.com",
+      "domain": "example.com",
+      "latitude": 99.99,
+      "longitude": -11.11
+    }
   },
 
-  "fonts": {
-    "time": "digitaldisplayregular-odeo",
-    "text": "ibmplexsans-text"
+  "device": {
+    "class": "rpi",
+    "params": {
+      "framebuffer_device": "/dev/fb1",
+      "framebuffer_driver": "fbcon",
+      "width": 320,
+      "height": 240,
+      "brightness": 1023,
+      "brightness_pin": 18,
+      "brightness_frequency": 1000,
+      "button_pins": [17, 22, 23, 27]
+    }
   },
 
   "themes": {
@@ -50,79 +52,134 @@
     }
   },
 
-  "gpio": {
-    "brightness_pin": 18,
-    "brightness_frequency": 1000,
-    "button_pins": [17, 22, 23, 27]
-  },
-
   "buttons": {
     "quit": 3,
     "poweroff": 4
   },
 
-  "panels": {
-
-    "time": {
-      "font_size": 132,
-      "format": "%H:%M",
-      "fx": 1,
-      "fy": 0.5,
-      "margins": [10, 1]
-    },
-
-    "date": {
-      "font_size": 40,
-      "format": "%a %b %d",
-      "fx": 0,
-      "fy": 0.5,
-      "width": 260,
-      "margins": [10, 1]
-    },
-
-    "seconds": {
-      "font_size": 40,
-      "format": "%S",
-      "fx": 0,
-      "fy": 0.5,
-      "width": 60,
-      "margins": [10, 1]
-    },
-
-    "temperature": {
-      "font_size": 36,
-      "format": "%T",
-      "fx": 0,
-      "fy": 0.5,
-      "width": 80,
-      "margins": [10, 1, 1, 1],
-      "metric": false
-    },
-
-    "conditions": {
-      "font_size": 18,
-      "format": "%D",
-      "fx": 0,
-      "fy": 0.5,
-      "width": 180,
-      "margins": [10, 1, 1, 1]
-    },
-
-    "icon": {
-      "font_size": 12,
-      "format": "%I",
-      "fx": 0.5,
-      "fy": 0.5,
-      "width": 60,
-      "margins": [2, 2, 2, 2]
-    },
-
-    "message": {
-      "font_size": 12,
-      "fx": 0,
-      "fy": 0.5,
-      "margins": [10, 1]
+  "screens": {
+    "clock": {
+      "rows": [
+        {
+          "height": 120,
+          "panel": {
+            "name": "time",
+            "class": "time",
+            "color": "time",
+            "font": "digitaldisplayregular-odeo:132",
+            "fx": 1,
+            "fy": 0.5,
+            "margins": [10, 1],
+            "params": {
+              "format": "%H:%M"
+            }
+          }
+        },
+        {
+          "height": 60,
+          "columns": [
+            {
+              "width": 260,
+              "panel": {
+                "name": "date",
+                "class": "time",
+                "color": "date",
+                "font": "ibmplexsans-text:40",
+                "fx": 0,
+                "fy": 0.5,
+                "width": 260,
+                "margins": [10, 1],
+                "params": {
+                  "format": "%a %b %d"
+                }
+              }
+            },
+            {
+              "width": 60,
+              "panel": {
+                "name": "seconds",
+                "class": "time",
+                "color": "seconds",
+                "font": "digitaldisplayregular-odeo:40",
+                "fx": 0,
+                "fy": 0.5,
+                "width": 60,
+                "margins": [10, 1],
+                "params": {
+                  "format": "%S"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "height": 60,
+          "columns": [
+            {
+              "width": 80,
+              "panel": {
+                "name": "temperature",
+                "class": "weather",
+                "color": "temperature",
+                "font": "ibmplexsans-text:36",
+                "fx": 0,
+                "fy": 0.5,
+                "width": 80,
+                "margins": [10, 1, 1, 1],
+                "params": {
+                  "format": "%T",
+                  "metric": false
+                }
+              }
+            },
+            {
+              "width": 180,
+              "panel": {
+                "name": "conditions",
+                "class": "weather",
+                "color": "conditions",
+                "font": "ibmplexsans-text:18",
+                "fx": 0,
+                "fy": 0.5,
+                "width": 180,
+                "margins": [10, 1, 1, 1],
+                "params": {
+                  "format": "%D"
+                }
+              }
+            },
+            {
+              "width": 60,
+              "panel": {
+                "name": "icon",
+                "class": "weather",
+                "border_color": "icon_border",
+                "font": "ibmplexsans-text:12",
+                "fx": 0.5,
+                "fy": 0.5,
+                "width": 60,
+                "margins": [2, 2, 2, 2],
+                "params": {
+                  "format": "%I"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "height": null,
+          "panel": {
+            "name": "message",
+            "class": "message",
+            "color": "message",
+            "font": "ibmplexsans-text:12",
+            "fx": 0,
+            "fy": 0.5,
+            "margins": [10, 1]
+          }
+        }
+      ]
     }
-
   }
+
 }

@@ -14,15 +14,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with rpi-clock.  If not, see <https://www.gnu.org/licenses/>.
-
-"""Package module provides a logger."""
-
-import sys
-import logging
-
-log = logging.getLogger(__name__)
-out_handler = logging.StreamHandler(sys.stdout)
-out_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-out_handler.setLevel(logging.DEBUG)
-log.addHandler(out_handler)
-log.setLevel(logging.DEBUG)

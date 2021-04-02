@@ -22,22 +22,12 @@ import os
 import signal
 import sys
 from time import sleep
-from typing import Type, Optional
+from typing import Type
 
-from rpiclock import log
-from rpiclock.model.config import Config
-from rpiclock.view.font_manager import FontManager
-from rpiclock.view.screen import Screen
-from rpiclock.view.screen_manager import ScreenManager
-from rpiclock.view.viewport import Viewport
-
-from .device_driver import DeviceDriver
-from .events.button import ButtonEvents
-from .events.tick import TickEvents
-from .events.timer import TimerEvents
-from .events.trigger import TriggerEvents
-from .event_manager import EventManager
-from .rpi_driver import RPIDriver
+from rpiclock.drivers import DeviceDriver, RPIDriver
+from rpiclock.events import ButtonEvents, TickEvents, TimerEvents, TriggerEvents, EventProducersRegistry
+from rpiclock.screen import ScreensRegistry, Screen, Viewport
+from rpiclock.utility import Config, log, FontsFinder
 
 DEFAULT_POLL_INTERVAL = 0.1
 
@@ -54,42 +44,14 @@ class MainController:
         self.instances += 1
         self.config = Config(config_path)
         self.poll_interval = self.config.poll_interval or DEFAULT_POLL_INTERVAL
-        self.event_manager = EventManager()
-        self.driver = _get_driver(self.config.device.type, self.config.device.params)
-        button_event_producer = ButtonEvents(self.driver)
-        self.event_manager.add_producer('button', button_event_producer)
-        self.event_manager.add_producer('timer', TimerEvents())
-        self.event_manager.add_producer('tick', TickEvents())
-        self.event_manager.add_producer('trigger', TriggerEvents())
-        # Event handlers must be flagged permanent in order to survive screen initialization.
-        self.event_manager.register('timer', self.update, self.config.update_interval,
-                                    permanent=True)
-        self.event_manager.register('trigger', self.activate_screen, 'screen', permanent=True)
-        # Supported buttons actions are "quit", "poweroff", "screen1", and "screen2".
-        if self.config.buttons.quit:
-            self.event_manager.register('button',
-                                        self.on_quit,
-                                        self.config.buttons.quit,
-                                        permanent=True)
-        if self.config.buttons.poweroff:
-            self.event_manager.register('button',
-                                        self.on_poweroff,
-                                        self.config.buttons.poweroff,
-                                        permanent=True)
-        if self.config.buttons.screen1:
-            self.event_manager.register('button',
-                                        self.on_screen1,
-                                        self.config.buttons.screen1,
-                                        permanent=True)
-        if self.config.buttons.screen2:
-            self.event_manager.register('button',
-                                        self.on_screen2,
-                                        self.config.buttons.screen2,
-                                        permanent=True)
-        self.font_manager = FontManager(os.path.join(base_folder, 'fonts'))
-        self.screen_manager = ScreenManager(self.event_manager)
+        self.driver = self._initialize_driver()
+        self.event_producers_registry = self._initialize_events()
+        self.fonts_finder = FontsFinder(os.path.join(base_folder, 'fonts'))
+        self.screens_registry = ScreensRegistry(self.event_producers_registry)
         self.display = self.driver.get_display()
-        self.outer_viewport = Viewport(self.display, self.event_manager, self.display.rect)
+        self.outer_viewport = Viewport(self.display,
+                                       self.event_producers_registry,
+                                       self.display.rect)
         self.outer_viewport.clear()
         atexit.register(self.cleanup)
 
@@ -99,17 +61,70 @@ class MainController:
         signal.signal(signal.SIGTERM, _signal_handler)
         signal.signal(signal.SIGINT, _signal_handler)
 
-    def add_screen(self, name, screen_class: Type[Screen]):
+    def _initialize_driver(self) -> DeviceDriver:
+        # noinspection PyBroadException
+        try:
+            if not self.config.device["class"]:
+                raise ValueError(f'No device.class specified in configuration.')
+            # "rpi" is the only supported driver class for now.
+            if self.config.device["class"] != 'rpi':
+                raise ValueError(f'Bad device.class "{self.config.device["class"]}".')
+            return RPIDriver(**(self.config.device.params or {}))
+        except Exception as exc:
+            log.critical(exc)
+            sys.exit(1)
+
+    def _initialize_events(self) -> EventProducersRegistry:
+        event_producers_registry = EventProducersRegistry()
+        button_event_producer = ButtonEvents(self.driver)
+        event_producers_registry.add_producer('button', button_event_producer)
+        event_producers_registry.add_producer('timer', TimerEvents())
+        event_producers_registry.add_producer('tick', TickEvents())
+        event_producers_registry.add_producer('trigger', TriggerEvents())
+        # Event handlers must be flagged permanent in order to survive screen initialization.
+        event_producers_registry.register('timer',
+                                          self.update,
+                                          self.config.update_interval,
+                                          permanent=True)
+        event_producers_registry.register('trigger',
+                                          self.activate_screen,
+                                          'screen',
+                                          permanent=True)
+        # Supported buttons actions are "quit", "poweroff", "screen1", and "screen2".
+        if self.config.buttons.quit:
+            event_producers_registry.register('button',
+                                              self.on_quit,
+                                              self.config.buttons.quit,
+                                              permanent=True)
+        if self.config.buttons.poweroff:
+            event_producers_registry.register('button',
+                                              self.on_poweroff,
+                                              self.config.buttons.poweroff,
+                                              permanent=True)
+        if self.config.buttons.screen1:
+            event_producers_registry.register('button',
+                                              self.on_screen1,
+                                              self.config.buttons.screen1,
+                                              permanent=True)
+        if self.config.buttons.screen2:
+            event_producers_registry.register('button',
+                                              self.on_screen2,
+                                              self.config.buttons.screen2,
+                                              permanent=True)
+        return event_producers_registry
+
+    def add_screen(self, name, screen_class: Type[Screen]) -> Screen:
         """
         Add named screen.
 
         :param name: screen name
         :param screen_class: screen class (not instance)
+        :return: screen instance
         """
         log.info(f'Add screen "{name}".')
-        self.screen_manager.add_screen(name, screen_class(self.config,
-                                                          self.event_manager,
-                                                          self.font_manager))
+        screen = screen_class(name, self.config, self.event_producers_registry, self.fonts_finder)
+        self.screens_registry.add_screen(name, screen)
+        return screen
 
     def update(self):
         """
@@ -117,7 +132,7 @@ class MainController:
         """
         if self.config.update():
             log.info('Reloaded configuration.')
-            self.screen_manager.force_refresh()
+            self.screens_registry.force_refresh()
 
     def activate_screen(self, name: str):
         """
@@ -126,27 +141,27 @@ class MainController:
         :param name: screen name
         """
         log.info(f'Activate screen "{name}".')
-        self.screen_manager.show_screen(name, self.outer_viewport)
+        self.screens_registry.show_screen(name, self.outer_viewport)
 
     def on_quit(self):
         """Handle button by quitting application."""
-        self.screen_manager.active_screen.message('Exiting...')
+        self.screens_registry.active_screen.message('Exiting...')
         sleep(2)
         sys.exit(0)
 
     def on_poweroff(self):
         """Handle button by powering off the Raspberry Pi."""
-        self.screen_manager.active_screen.message('Powering off...')
+        self.screens_registry.active_screen.message('Powering off...')
         sleep(2)
         os.execlp('sudo', 'sudo', 'poweroff')
 
     def on_screen1(self):
         """Handle button by switching to screen #1."""
-        self.event_manager.send('trigger', 'screen', 'main')
+        self.event_producers_registry.send('trigger', 'screen', 'main')
 
     def on_screen2(self):
         """Handle button by switching to screen #1."""
-        self.event_manager.send('trigger', 'screen', 'screen2')
+        self.event_producers_registry.send('trigger', 'screen', 'screen2')
 
     def cleanup(self):
         """
@@ -165,22 +180,11 @@ class MainController:
         """
         # Handle Control-C exception cleanly.
         try:
-            self.screen_manager.show_screen(initial_screen_name, self.outer_viewport)
+            self.screens_registry.show_screen(initial_screen_name, self.outer_viewport)
             log.info('Start main loop.')
             while True:
-                self.event_manager.tick()
+                self.event_producers_registry.tick()
                 sleep(self.poll_interval)
         except KeyboardInterrupt:
             sys.stderr.write(os.linesep)
             sys.exit(2)
-
-
-def _get_driver(device_type: str, params: Optional[dict]) -> DeviceDriver:
-    # noinspection PyBroadException
-    try:
-        if device_type == 'rpi':
-            return RPIDriver(params)
-        raise ValueError(f'Bad device type "{device_type}".')
-    except Exception as exc:
-        log.critical(exc)
-        sys.exit(1)

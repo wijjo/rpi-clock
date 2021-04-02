@@ -24,7 +24,8 @@ recollection of what needs to happen to take advantage of this project.
 * Large digital time display with seconds.
 * Periodically-updated NOAA weather data, including temperature and conditions text/image.
 * PiTFT button 3 shuts quits application.
-* Font/color/position customization in config.json.
+* The application is fully-specified in the "config.json" file. I.e. no 
+  application-specific Python code is needed.
 
 ## Development toolkit features
 
@@ -36,36 +37,59 @@ recollection of what needs to happen to take advantage of this project.
 * Limited, but useful free font resource library.
 * No external dependencies beyond Python 3, PyGame, and framebuffer/GPIO device support.
 * Simple management scripts (run.sh/kill.sh/tail.sh).
+
+### Utility scripts
+
+The `bin` folder has the following utility scripts.
+
+* `build.py` - build and deploy distribution using `rsync`.
+* `kill.sh` - kill process started by `run.sh` script.
+* `run.sh` - run tracked and logged `rpi-clock.py` instance.
+* `tail.sh` - tail the log produced by the `run.sh` script running instance.
   
-### Model/view/controller (MVC) architecture
+### Component package architecture
 
-Provides the following components:
+The `rpiclock` library has been broken up into the packages described in the
+following subsections. Their inter-dependencies are documented in
+`doc/package-dependencies.md`.
 
-#### Model: data sources
+#### controller
 
-Configurable data sources support JSON and file downloads with automatic caching
-and expiration timing.
+The controller is the top level component that pulls together the configuration
+and application pieces, and then runs the application main loop.
 
-#### View: viewports and screens
+A developer can freely decide to build an application in Python code or use the
+completely configuration-driven support implemented by `configured_main` and
+`configured_screen`.
 
-Viewports are logical display regions with assigned fonts, colors, and margins.
+#### drivers
 
-Screens are logical full-screen pages with their own assigned viewports.
+Hardware and display support is broken into abstract and implementation classes.
+The only current implementations support the Raspberry Pi hardware platform and
+PyGame for display.
 
-#### Controller: panels, events, and controller
+#### events
 
-Panels are assigned to viewports. They pull in external data and format screen output.
+This package provides the event production and handling framework. It includes
+an event producers registry from which outside handlers can subscribe to
+generated runtime events.
 
-Included panels support text, time, and weather display in various formats.
+#### panels
 
-Events are implemented as producers and handlers. Producers map external triggers, 
-like time and hardware button events, to logical events. Logical events invoke 
-handler functions.
+Panels provide registered implementations that talk to the outside world and can
+display information in screen viewports (described in the `screen` subsection).
 
-Included event producers support GPIO button, tick, timer, and programmatic trigger events.
+#### screen
 
-There is a single controller that provides the main loop and initializes and manages
-viewports, panels, and events.
+The `screen` package is the logical front end to the display. It divides logical
+screens into rectangles called `viewports`. Viewports determine how panels
+appear to the user. They hold and apply display attributes, like font, text
+size, alignment, and margins.
+
+#### utility
+
+This package has a mixture of independent functions and classes that support a
+variety of general-purpose capabilities. They depend on no other packages.
 
 ## Licensing
 
@@ -107,11 +131,6 @@ You can also customize fonts, colors, and panel placement in `config.json`.
 Included fonts may be found in the `fonts` folder. They are identified by
 lowercase file name without the extension. The `fonts` and `colors` JSON
 elements make it easier to centralize and manage these commonly-tweaked items.
-
-The next place to look is the main `rpi-clock.py` script and then 
-`app/main-screen.py`. The latter uses configuration data to initialize all the
-runtime requirements of the main clock screen, including viewports, panels, and
-event handling.
 
 ## Running the clock at boot time.
 

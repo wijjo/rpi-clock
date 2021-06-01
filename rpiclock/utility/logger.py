@@ -23,6 +23,6 @@ import logging
 log = logging.getLogger(__name__)
 out_handler = logging.StreamHandler(sys.stdout)
 out_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-out_handler.setLevel(logging.DEBUG)
+out_handler.setLevel(logging.WARNING)
 log.addHandler(out_handler)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARNING)

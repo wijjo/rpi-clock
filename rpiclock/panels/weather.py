@@ -22,7 +22,7 @@ from typing import Optional
 
 from rpiclock.events import EventProducersRegistry
 from rpiclock.screen import Panel, Viewport
-from rpiclock.utility import JSONDataSource, ImageDataSource
+from rpiclock.utility import JSONDataSource, ImageDataSource, log
 
 from .registry import PanelRegistry
 
@@ -179,7 +179,8 @@ class WeatherPanel(Panel):
             else:
                 self.text = observations.format(self.weather_format)
         except WeatherError as exc:
-            self.text = f'*{exc}*'
+            self.text = '--'
+            log.error(f'Weather retrieval error: {str(exc)}')
         self.ready = True
 
     def on_initialize(self, event_producers_registry: EventProducersRegistry, viewport: Viewport):
@@ -254,22 +255,31 @@ class WeatherPanel(Panel):
         observations_data = self.observations_data_source.download(
             station=self.noaa_params.station)
         if observations_data is None:
-            raise WeatherError('NOAA latest observations are unavailable')
-        timestamp = observations_data['properties']['timestamp']
-        description = observations_data['properties']['textDescription']
-        temperature_data = observations_data['properties']['temperature']
-        temperature_value = temperature_data['value']
-        if temperature_value is not None:
-            if temperature_data['unitCode'] == 'unit:degC':
-                if not self.metric:
-                    temperature_value = temperature_value * 1.8 + 32
-            else:
-                if self.metric:
-                    temperature_value = (temperature_value - 32) / 1.8
-            temperature = f'{int(temperature_value)}\u00b0'
-        else:
-            temperature = '--'
-        icon = observations_data['properties']['icon']
+            raise WeatherError('NOAA returned no observations data')
+        if not isinstance(observations_data, dict):
+            raise WeatherError('Badly format NOAA observations data')
+        if 'properties' not in observations_data:
+            raise WeatherError('NOAA observations data missing properties')
+        properties = observations_data['properties']
+        # Be careful to protect against unexpected data types, values, or structure.
+        timestamp = properties.get('timestamp')
+        if not timestamp or not isinstance(timestamp, str):
+            timestamp = '--'
+        description = properties.get('textDescription')
+        if not description or not isinstance(description, str):
+            description = '--'
+        temperature = '--'
+        temperature_data = properties.get('temperature')
+        if not temperature_data or not isinstance(description, dict):
+            temperature_value = temperature_data.get('value')
+            if temperature_value and isinstance(temperature_value, (int, float)):
+                if temperature_data.get('unitCode') == 'unit:degC':
+                    if not self.metric:
+                        temperature = f'{int(temperature_value * 1.8 + 32)}\u00b0'
+                else:
+                    if self.metric:
+                        temperature = f'{int((temperature_value - 32) / 1.8)}\u00b0'
+        icon = properties.get('icon')
         return NOAAObservations(timestamp, description, temperature, icon)
 
     def on_display(self, viewport: Viewport):

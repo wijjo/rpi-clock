@@ -138,7 +138,13 @@ class Viewport:
         if not overwrite:
             self.clear()
         while True:
-            text_size = self.display.measure_text(text, self.font)
+            # noinspection PyBroadException
+            try:
+                text_size = self.display.measure_text(text, self.font)
+            except Exception as exc:
+                log.error('Bad text for display.', exc, text)
+                text = '???'
+                text_size = self.display.measure_text(text, self.font)
             text_rect = self.rect.sub_rect(fleft=self.fx,
                                            ftop=self.fy,
                                            width=text_size.width,
